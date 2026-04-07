@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红橙果园 - 智慧大屏</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo-wrap">
+        <div class="logo-icon">Y</div>
+        <div class="logo-text">红橙果园</div>
+      </div>
+      <nav class="menu">
+        <button class="menu-item is-active">概览分析</button>
+        <a class="menu-item menu-link" href="/diagnosis">智能诊断</a>
+        <a class="menu-item menu-link" href="/admin">管理后台</a>
+      </nav>
+      <button class="collapse-btn" id="collapseBtn">收起侧栏</button>
+    </aside>
+
+    <main class="screen">
+      <header class="screen-title-wrap">
+        <div class="screen-title">智慧果园数据可视化大屏</div>
+      </header>
+
+      <section class="screen-grid">
+        <section class="panel panel-left">
+          <div class="panel-header">
+            <h3>最新小时传感器（10项）</h3>
+            <p id="latestTimestamp">--</p>
+          </div>
+          <div class="metric-list" id="metricList"></div>
+          <div class="chart-box" id="sensorRadarChart"></div>
+        </section>
+
+        <section class="panel panel-center">
+          <div class="panel-header">
+            <h3>区域总览与切换</h3>
+            <p>默认区域：Zone_1</p>
+          </div>
+          <div class="zone-map-wrap">
+            <svg id="zoneSvg" viewBox="0 0 640 260" preserveAspectRatio="xMidYMid meet">
+              <g class="zone-group" data-zone="zone_1">
+                <polygon points="55,120 145,70 240,90 210,170 90,180" />
+                <text x="145" y="130">Zone_1</text>
+              </g>
+              <g class="zone-group" data-zone="zone_2">
+                <polygon points="238,88 318,56 388,88 348,148 248,145" />
+                <text x="312" y="108">Zone_2</text>
+              </g>
+              <g class="zone-group" data-zone="zone_3">
+                <polygon points="391,88 482,65 562,104 526,165 422,152" />
+                <text x="485" y="117">Zone_3</text>
+              </g>
+              <g class="zone-group" data-zone="zone_4">
+                <polygon points="102,182 214,172 248,220 166,245 86,228" />
+                <text x="165" y="212">Zone_4</text>
+              </g>
+              <g class="zone-group" data-zone="zone_5">
+                <polygon points="251,146 350,149 402,204 336,246 243,220" />
+                <text x="322" y="198">Zone_5</text>
+              </g>
+              <g class="zone-group" data-zone="zone_6">
+                <polygon points="422,154 528,166 574,221 498,252 411,214" />
+                <text x="495" y="205">Zone_6</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="panel-header narrow">
+            <h3>YOLO识别结果（占位）</h3>
+          </div>
+          <div class="yolo-table" id="yoloTable"></div>
+        </section>
+
+        <section class="panel panel-right">
+          <div class="panel-header">
+            <h3>未来24小时预测与天气</h3>
+            <p id="predictionHint">--</p>
+          </div>
+          <div class="chart-box right-big" id="predictChart"></div>
+          <div class="quick-kpi" id="quickKpi"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

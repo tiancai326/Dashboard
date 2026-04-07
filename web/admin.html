@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红橙果园 - 管理后台</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <style>
+    .admin-screen {
+      padding: 12px 16px 16px;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 22% 12%, rgba(8, 118, 255, 0.22), transparent 44%),
+        radial-gradient(circle at 85% 18%, rgba(0, 229, 255, 0.16), transparent 40%),
+        linear-gradient(135deg, #060d1f, #03142f);
+    }
+
+    .admin-header {
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(68, 165, 255, 0.38);
+      border-radius: 12px;
+      background: rgba(9, 31, 71, 0.76);
+      box-shadow: inset 0 0 20px rgba(17, 121, 214, 0.2);
+    }
+
+    .admin-title {
+      margin: 0;
+      font-size: 30px;
+      color: #d8f4ff;
+      letter-spacing: 1px;
+    }
+
+    .admin-subtitle {
+      margin: 4px 0 0;
+      color: #8ab9e8;
+      font-size: 18px;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .admin-card {
+      border: 1px solid rgba(80, 169, 255, 0.32);
+      border-radius: 14px;
+      background: rgba(7, 24, 58, 0.75);
+      box-shadow: inset 0 0 24px rgba(17, 121, 214, 0.16);
+      padding: 18px;
+      min-height: 420px;
+    }
+
+    .admin-card h3 {
+      margin: 0;
+      color: #c6edff;
+      font-size: 32px;
+    }
+
+    .admin-card p {
+      color: #8dbce8;
+      font-size: 20px;
+      margin: 8px 0 0;
+    }
+
+    .field-label {
+      margin-top: 24px;
+      font-size: 26px;
+      color: #d5eeff;
+    }
+
+    .url-box {
+      margin-top: 10px;
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(85, 167, 255, 0.36);
+      background: rgba(5, 24, 59, 0.85);
+      color: #dcf5ff;
+      font-size: 24px;
+      line-height: 1.45;
+      padding: 12px 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .field-hint {
+      margin-top: 8px;
+      color: #79abd9;
+      font-size: 18px;
+    }
+
+    .open-agent-btn {
+      margin-top: 18px;
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: none;
+      text-decoration: none;
+      color: #031326;
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #22e37a, #f8d14f, #ff8c42);
+      box-shadow: 0 10px 24px rgba(17, 181, 120, 0.3);
+    }
+
+    .sys-list {
+      margin-top: 20px;
+      border-top: 1px solid rgba(94, 171, 255, 0.24);
+    }
+
+    .sys-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(94, 171, 255, 0.18);
+    }
+
+    .sys-key {
+      color: #9ac8ef;
+      font-size: 23px;
+    }
+
+    .sys-val {
+      color: #edf9ff;
+      font-size: 24px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .sys-val.ok {
+      color: #4af3a9;
+    }
+
+    @media (max-width: 1300px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-card {
+        min-height: auto;
+      }
+
+      .admin-card h3 {
+        font-size: 26px;
+      }
+
+      .admin-card p {
+        font-size: 18px;
+      }
+
+      .field-label {
+        font-size: 20px;
+      }
+
+      .url-box {
+        font-size: 18px;
+      }
+
+      .open-agent-btn {
+        font-size: 20px;
+      }
+
+      .sys-key,
+      .sys-val {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo-wrap">
+        <div class="logo-icon">Y</div>
+        <div class="logo-text">红橙果园</div>
+      </div>
+      <nav class="menu">
+        <a class="menu-item menu-link" href="/">概览分析</a>
+        <a class="menu-item menu-link" href="/diagnosis">智能诊断</a>
+        <button class="menu-item is-active" type="button">管理后台</button>
+      </nav>
+      <button class="collapse-btn" id="collapseBtn" type="button">收起侧栏</button>
+    </aside>
+
+    <main class="admin-screen">
+      <header class="admin-header">
+        <h1 class="admin-title">管理后台</h1>
+        <p class="admin-subtitle">管理和配置智能体系统</p>
+      </header>
+
+      <section class="admin-grid">
+        <article class="admin-card">
+          <h3>智能体后台设置</h3>
+          <p>连接和访问你的 Dify 智能体平台</p>
+
+          <div class="field-label">智能体后台网址</div>
+          <div class="url-box">https://dify.mysolo.codes/</div>
+          <div class="field-hint">点击下方按钮可在新窗口打开对应后台地址</div>
+
+          <a
+            class="open-agent-btn"
+            href="https://dify.mysolo.codes/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            打开智能体后台
+          </a>
+        </article>
+
+        <article class="admin-card">
+          <h3>系统信息</h3>
+          <p>当前系统配置和运行状态</p>
+
+          <div class="sys-list">
+            <div class="sys-row">
+              <div class="sys-key">系统版本</div>
+              <div class="sys-val">v2026.04</div>
+            </div>
+            <div class="sys-row">
+              <div class="sys-key">数据更新频率</div>
+              <div class="sys-val">1分钟/次</div>
+            </div>
+            <div class="sys-row">
+              <div class="sys-key">监测区域</div>
+              <div class="sys-val">6个</div>
+            </div>
+            <div class="sys-row">
+              <div class="sys-key">传感器指标</div>
+              <div class="sys-val">10项</div>
+            </div>
+            <div class="sys-row">
+              <div class="sys-key">预测模型</div>
+              <div class="sys-val">Encoder-Decoder LSTM</div>
+            </div>
+            <div class="sys-row">
+              <div class="sys-key">后端链路</div>
+              <div class="sys-val">MQTT + FastAPI + MySQL</div>
+            </div>
+            <div class="sys-row">
+              <div class="sys-key">系统状态</div>
+              <div class="sys-val ok">● 正常运行</div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const appShell = document.getElementById("appShell");
+    const collapseBtn = document.getElementById("collapseBtn");
+    collapseBtn?.addEventListener("click", () => {
+      appShell.classList.toggle("sidebar-collapsed");
+    });
+  </script>
+</body>
+</html>
