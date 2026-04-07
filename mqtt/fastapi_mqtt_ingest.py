@@ -11,8 +11,9 @@ from zoneinfo import ZoneInfo
 import paho.mqtt.client as mqtt
 import pymysql
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+
+from mqtt.routes_basic import build_basic_router
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -62,6 +63,8 @@ if WEB_DIR.exists():
     app.mount("/assets", StaticFiles(directory=str(WEB_DIR)), name="assets")
 if GALLERY_DIR.exists():
     app.mount("/gallery", StaticFiles(directory=str(GALLERY_DIR)), name="gallery")
+
+app.include_router(build_basic_router(WEB_DIR))
 
 
 def quote_ident(name: str) -> str:
@@ -361,35 +364,6 @@ def shutdown() -> None:
     if writer.conn is not None:
         writer.conn.close()
     logger.info("FastAPI MQTT ingest service stopped.")
-
-
-@app.get("/")
-def index() -> FileResponse:
-    index_file = WEB_DIR / "index.html"
-    if not index_file.exists():
-        raise HTTPException(status_code=404, detail="index.html not found")
-    return FileResponse(index_file)
-
-
-@app.get("/admin")
-def admin_page() -> FileResponse:
-    admin_file = WEB_DIR / "admin.html"
-    if not admin_file.exists():
-        raise HTTPException(status_code=404, detail="admin.html not found")
-    return FileResponse(admin_file)
-
-
-@app.get("/diagnosis")
-def diagnosis_page() -> FileResponse:
-    diagnosis_file = WEB_DIR / "diagnosis.html"
-    if not diagnosis_file.exists():
-        raise HTTPException(status_code=404, detail="diagnosis.html not found")
-    return FileResponse(diagnosis_file)
-
-
-@app.get("/health")
-def health() -> dict[str, Any]:
-    return {"status": "ok", "service": "mqtt-ingest"}
 
 
 @app.get("/api/zones")

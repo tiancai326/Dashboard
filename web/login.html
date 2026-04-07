@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红橙管理系统 - 登录</title>
+  <style>
+    :root {
+      --bg-1: #020617;
+      --bg-2: #06113b;
+      --cyan: #22d3ee;
+      --blue: #2563eb;
+      --panel: rgba(10, 25, 58, 0.82);
+      --text: #dff7ff;
+      --muted: #81a8c7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      overflow: hidden;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+    }
+
+    .glow {
+      position: fixed;
+      width: 380px;
+      height: 380px;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      animation: breathe 9s ease-in-out infinite;
+    }
+
+    .glow.g1 { top: -80px; left: -40px; background: rgba(34, 211, 238, 0.24); }
+    .glow.g2 { top: 20%; right: -100px; background: rgba(37, 99, 235, 0.26); animation-delay: 2s; }
+    .glow.g3 { bottom: -120px; left: 35%; background: rgba(45, 212, 191, 0.2); animation-delay: 4s; }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: 0.25; }
+      50% { transform: scale(1.2); opacity: 0.45; }
+    }
+
+    .particles { position: fixed; inset: 0; pointer-events: none; }
+    .particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(34, 211, 238, 0.9);
+      animation: float 6s linear infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0); opacity: 0; }
+      30% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { transform: translateY(-30px); opacity: 0; }
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 3;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .content {
+      width: min(420px, 92vw);
+      text-align: center;
+    }
+
+    .logo {
+      width: 74px;
+      height: 74px;
+      border-radius: 18px;
+      margin: 0 auto 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, #0ea5e9, #2563eb);
+      box-shadow: 0 20px 60px rgba(6, 182, 212, 0.4);
+      animation: pulse 4s ease-in-out infinite;
+      font-size: 34px;
+      font-weight: 700;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 20px 60px rgba(6, 182, 212, 0.35); }
+      50% { box-shadow: 0 20px 80px rgba(37, 99, 235, 0.5); }
+    }
+
+    .title { margin: 0; font-size: 46px; letter-spacing: 1px; color: #36c5ff; }
+    .subtitle { margin: 8px 0 24px; color: var(--muted); font-size: 16px; }
+
+    .card-glow {
+      position: relative;
+      padding: 1px;
+      border-radius: 28px;
+      background: linear-gradient(90deg, rgba(34,211,238,.7), rgba(37,99,235,.7));
+      box-shadow: 0 0 40px rgba(34, 211, 238, 0.28);
+    }
+
+    .card {
+      border-radius: 28px;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      padding: 28px;
+      text-align: left;
+    }
+
+    .card h2 { margin: 0 0 18px; text-align: center; font-size: 34px; }
+
+    .field { margin-bottom: 14px; }
+    .input {
+      width: 100%;
+      border: 1px solid rgba(34, 211, 238, 0.24);
+      background: rgba(10, 23, 52, 0.72);
+      color: #e9fbff;
+      border-radius: 12px;
+      padding: 14px 14px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .input:focus {
+      border-color: rgba(34, 211, 238, 0.8);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .login-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      background: linear-gradient(90deg, #06b6d4, #2563eb);
+    }
+
+    .hint {
+      margin-top: 12px;
+      text-align: center;
+      color: #ff9fa9;
+      min-height: 22px;
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 14px;
+      text-align: center;
+      color: #6f95b4;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+  <div class="glow g3"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="wrap">
+    <div class="content">
+      <div class="logo">Y</div>
+      <h1 class="title">红橙管理系统</h1>
+      <p class="subtitle">欢迎回来，请登录您的管理员账户</p>
+
+      <div class="card-glow">
+        <form class="card" id="loginForm">
+          <h2>用户登录</h2>
+
+          <div class="field">
+            <input class="input" type="email" id="email" placeholder="邮箱地址" required>
+          </div>
+          <div class="field">
+            <input class="input" type="password" id="password" placeholder="密码" required>
+          </div>
+
+          <div class="row">
+            <label><input type="checkbox"> 记住我</label>
+            <span>忘记密码？</span>
+          </div>
+
+          <button class="login-btn" type="submit">登录</button>
+          <div class="hint" id="msg"></div>
+        </form>
+      </div>
+
+      <div class="footer">仅管理员可登录，账号由系统管理员手动创建</div>
+    </div>
+  </div>
+
+  <script>
+    const particles = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.top = `${Math.random() * 100}%`;
+      p.style.animationDelay = `${Math.random() * 6}s`;
+      p.style.animationDuration = `${4 + Math.random() * 4}s`;
+      particles.appendChild(p);
+    }
+
+    const form = document.getElementById('loginForm');
+    const msg = document.getElementById('msg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const resp = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        if (!resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          msg.textContent = data.detail || '登录失败，请检查账号密码';
+          return;
+        }
+        const data = await resp.json();
+        window.location.href = data.redirect || '/';
+      } catch (_err) {
+        msg.textContent = '网络异常，请稍后重试';
+      }
+    });
+  </script>
+</body>
+</html>

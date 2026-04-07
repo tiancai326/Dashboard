@@ -217,6 +217,10 @@ function avg(arr) {
 
 async function fetchJson(url) {
   const resp = await fetch(url);
+  if (resp.status === 401) {
+    window.location.href = "/login";
+    throw new Error("not authenticated");
+  }
   if (!resp.ok) throw new Error(`${url} -> ${resp.status}`);
   return resp.json();
 }
