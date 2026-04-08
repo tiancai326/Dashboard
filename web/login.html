@@ -128,6 +128,11 @@
     .card h2 { margin: 0 0 18px; text-align: center; font-size: 34px; }
 
     .field { margin-bottom: 14px; }
+
+    .password-wrap {
+      position: relative;
+    }
+
     .input {
       width: 100%;
       border: 1px solid rgba(34, 211, 238, 0.24);
@@ -137,6 +142,50 @@
       padding: 14px 14px;
       font-size: 16px;
       outline: none;
+    }
+
+    .password-wrap .input {
+      padding-right: 48px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #8fc5e8;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .toggle-password:hover {
+      color: #dff7ff;
+      background: rgba(34, 211, 238, 0.14);
+    }
+
+    /* Hide browser-native password reveal controls; use custom toggle only. */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    input[type="password"]::-webkit-credentials-auto-fill-button,
+    input[type="password"]::-webkit-caps-lock-indicator,
+    input[type="password"]::-webkit-strong-password-auto-fill-button,
+    input[type="password"]::-webkit-textfield-decoration-container {
+      visibility: hidden;
+      pointer-events: none;
+      display: none !important;
     }
 
     .input:focus {
@@ -202,7 +251,10 @@
             <input class="input" type="email" id="email" placeholder="邮箱地址" required>
           </div>
           <div class="field">
-            <input class="input" type="password" id="password" placeholder="密码" required>
+            <div class="password-wrap">
+              <input class="input" type="password" id="password" placeholder="密码" required>
+              <button class="toggle-password" id="togglePassword" type="button" aria-label="显示密码" title="显示密码">👁</button>
+            </div>
           </div>
 
           <div class="row">
@@ -233,12 +285,22 @@
 
     const form = document.getElementById('loginForm');
     const msg = document.getElementById('msg');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePassword');
+
+    togglePasswordBtn?.addEventListener('click', () => {
+      const show = passwordInput.type === 'password';
+      passwordInput.type = show ? 'text' : 'password';
+      togglePasswordBtn.textContent = show ? '🙈' : '👁';
+      togglePasswordBtn.setAttribute('aria-label', show ? '隐藏密码' : '显示密码');
+      togglePasswordBtn.title = show ? '隐藏密码' : '显示密码';
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       msg.textContent = '';
       const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
+      const password = passwordInput.value;
 
       try {
         const resp = await fetch('/auth/login', {
