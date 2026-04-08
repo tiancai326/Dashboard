@@ -242,6 +242,7 @@ body {
 }
 
 .zone-map-wrap {
+  position: relative;
   height: 31%;
   min-height: 170px;
   flex: 0 0 auto;
@@ -250,32 +251,182 @@ body {
   background:
     radial-gradient(circle at 50% 45%, rgba(17, 142, 255, 0.22), transparent 58%),
     rgba(4, 20, 48, 0.88);
+  overflow: hidden;
+}
+
+.zone-map-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -12% -42%;
+  background: linear-gradient(112deg, transparent 34%, rgba(88, 226, 255, 0.18) 50%, transparent 66%);
+  animation: zoneScan 8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 
 #zoneSvg {
   width: 100%;
   height: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.zone-links {
+  opacity: 0.76;
+}
+
+.flow-line {
+  stroke: rgba(90, 212, 255, 0.45);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-dasharray: 3 8;
+  animation: lineFlowIn 3.8s linear infinite;
+}
+
+.flow-line:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.flow-line:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.flow-line:nth-child(4) {
+  animation-delay: 0.9s;
+}
+
+.flow-line:nth-child(5) {
+  animation-delay: 1.2s;
+}
+
+.flow-line:nth-child(6) {
+  animation-delay: 1.5s;
+}
+
+.zone-pulse,
+.zone-points {
+  pointer-events: none;
+}
+
+.pulse-ring {
+  fill: none;
+  stroke: rgba(90, 226, 255, 0.9);
+  stroke-width: 1.2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ringPulse 2.8s ease-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.sensor-dot {
+  fill: #8af4ff;
+  filter: drop-shadow(0 0 6px rgba(84, 225, 255, 0.75));
+  animation: dotBlink 2.4s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.zone-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: zoneFloat 6s ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
 }
 
 .zone-group polygon {
-  fill: rgba(36, 129, 214, 0.3);
-  stroke: rgba(60, 223, 255, 0.8);
-  stroke-width: 2;
+  fill: url(#zoneFill);
+  stroke: rgba(60, 223, 255, 0.86);
+  stroke-width: 2.2;
   cursor: pointer;
-  transition: 0.25s ease;
+  transition: 0.28s ease;
 }
 
 .zone-group text {
-  font-size: 15px;
-  fill: #d2efff;
+  font-size: 16px;
+  fill: #dcf4ff;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   text-anchor: middle;
   pointer-events: none;
+  transition: 0.28s ease;
 }
 
 .zone-group.is-active polygon,
 .zone-group:hover polygon {
-  fill: rgba(43, 211, 255, 0.42);
-  filter: drop-shadow(0 0 14px rgba(43, 211, 255, 0.9));
+  fill: rgba(83, 221, 255, 0.48);
+  stroke: rgba(130, 242, 255, 0.98);
+  filter: drop-shadow(0 0 22px rgba(76, 217, 255, 0.9));
+}
+
+.zone-group.is-active text,
+.zone-group:hover text {
+  fill: #ffffff;
+  transform: translateY(-1px);
+}
+
+@keyframes zoneScan {
+  0% {
+    transform: translateX(-14%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.7;
+  }
+  60% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(14%);
+    opacity: 0;
+  }
+}
+
+@keyframes zoneFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes lineFlowIn {
+  0% {
+    stroke-dashoffset: 88;
+    opacity: 0.42;
+  }
+  60% {
+    opacity: 0.88;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.48;
+  }
+}
+
+@keyframes ringPulse {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.65);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(2.25);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.25);
+  }
+}
+
+@keyframes dotBlink {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .yolo-table {

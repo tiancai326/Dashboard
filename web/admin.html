@@ -17,7 +17,7 @@
 
     .admin-header {
       margin-bottom: 14px;
-      padding: 12px 14px;
+      padding: 14px 16px;
       border: 1px solid rgba(68, 165, 255, 0.38);
       border-radius: 12px;
       background: rgba(9, 31, 71, 0.76);
@@ -26,15 +26,17 @@
 
     .admin-title {
       margin: 0;
-      font-size: 30px;
+      font-size: 36px;
+      font-weight: 800;
       color: #d8f4ff;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
+      text-shadow: 0 0 14px rgba(64, 201, 255, 0.25);
     }
 
     .admin-subtitle {
       margin: 4px 0 0;
       color: #8ab9e8;
-      font-size: 18px;
+      font-size: 15px;
     }
 
     .admin-grid {
@@ -54,20 +56,26 @@
 
     .admin-card h3 {
       margin: 0;
-      color: #c6edff;
-      font-size: 32px;
+      color: #c7ecff;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-shadow: 0 0 10px rgba(73, 194, 255, 0.22);
     }
 
     .admin-card p {
-      color: #8dbce8;
-      font-size: 20px;
-      margin: 8px 0 0;
+      color: #89b7e0;
+      font-size: 15px;
+      margin: 6px 0 0;
+      line-height: 1.45;
     }
 
     .field-label {
-      margin-top: 24px;
-      font-size: 26px;
-      color: #d5eeff;
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #c9e9ff;
+      letter-spacing: 0.2px;
     }
 
     .url-box {
@@ -77,16 +85,16 @@
       border: 1px solid rgba(85, 167, 255, 0.36);
       background: rgba(5, 24, 59, 0.85);
       color: #dcf5ff;
-      font-size: 24px;
-      line-height: 1.45;
-      padding: 12px 14px;
+      font-size: 17px;
+      line-height: 1.35;
+      padding: 10px 12px;
       overflow-wrap: anywhere;
     }
 
     .field-hint {
-      margin-top: 8px;
+      margin-top: 7px;
       color: #79abd9;
-      font-size: 18px;
+      font-size: 13px;
     }
 
     .open-agent-btn {
@@ -96,19 +104,20 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 12px 14px;
-      border-radius: 12px;
+      padding: 11px 14px;
+      border-radius: 10px;
       border: none;
       text-decoration: none;
       color: #031326;
-      font-size: 24px;
+      font-size: 17px;
       font-weight: 700;
+      letter-spacing: 0.2px;
       background: linear-gradient(90deg, #22e37a, #f8d14f, #ff8c42);
       box-shadow: 0 10px 24px rgba(17, 181, 120, 0.3);
     }
 
     .sys-list {
-      margin-top: 20px;
+      margin-top: 14px;
       border-top: 1px solid rgba(94, 171, 255, 0.24);
     }
 
@@ -117,18 +126,19 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 14px 0;
+      padding: 10px 0;
       border-bottom: 1px solid rgba(94, 171, 255, 0.18);
     }
 
     .sys-key {
-      color: #9ac8ef;
-      font-size: 23px;
+      color: #94c4ea;
+      font-size: 15px;
+      letter-spacing: 0.2px;
     }
 
     .sys-val {
       color: #edf9ff;
-      font-size: 24px;
+      font-size: 17px;
       font-weight: 600;
       text-align: right;
     }
@@ -147,28 +157,28 @@
       }
 
       .admin-card h3 {
-        font-size: 26px;
+        font-size: 20px;
       }
 
       .admin-card p {
-        font-size: 18px;
+        font-size: 14px;
       }
 
       .field-label {
-        font-size: 20px;
+        font-size: 15px;
       }
 
       .url-box {
-        font-size: 18px;
+        font-size: 15px;
       }
 
       .open-agent-btn {
-        font-size: 20px;
+        font-size: 16px;
       }
 
       .sys-key,
       .sys-val {
-        font-size: 18px;
+        font-size: 14px;
       }
     }
   </style>
@@ -224,7 +234,7 @@
             </div>
             <div class="sys-row">
               <div class="sys-key">数据更新频率</div>
-              <div class="sys-val">1分钟/次</div>
+              <div class="sys-val">1小时/次</div>
             </div>
             <div class="sys-row">
               <div class="sys-key">监测区域</div>
