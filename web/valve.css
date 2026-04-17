@@ -1,0 +1,221 @@
+.valve-screen {
+  min-height: 100vh;
+  padding: 12px 14px 14px;
+  background:
+    radial-gradient(circle at 22% 12%, rgba(8, 118, 255, 0.2), transparent 44%),
+    radial-gradient(circle at 84% 18%, rgba(0, 229, 255, 0.14), transparent 40%),
+    linear-gradient(135deg, #060d1f, #03142f);
+}
+
+.valve-header {
+  border: 1px solid rgba(70, 163, 250, 0.34);
+  border-radius: 12px;
+  background: rgba(9, 31, 71, 0.8);
+  box-shadow: inset 0 0 22px rgba(17, 121, 214, 0.16);
+  padding: 12px 14px;
+}
+
+.valve-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #bff1ff;
+  letter-spacing: 0.4px;
+}
+
+.valve-header p {
+  margin: 6px 0 0;
+  color: #88b9e4;
+  font-size: 13px;
+}
+
+.zone-section {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.zone-btn {
+  border: 1px solid rgba(83, 161, 242, 0.34);
+  border-radius: 10px;
+  background: rgba(8, 30, 70, 0.72);
+  color: #a9d7ff;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.zone-btn:hover {
+  border-color: rgba(114, 215, 255, 0.52);
+  color: #d4f8ff;
+}
+
+.zone-btn.is-active {
+  color: #042341;
+  background: linear-gradient(135deg, #6cf5ff, #4da8ff);
+  box-shadow: 0 0 16px rgba(66, 208, 255, 0.42);
+  border-color: rgba(131, 232, 255, 0.92);
+}
+
+.control-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 2.1fr 1fr;
+  gap: 12px;
+}
+
+.control-card {
+  border: 1px solid rgba(85, 169, 255, 0.3);
+  border-radius: 12px;
+  background: rgba(7, 24, 57, 0.78);
+  box-shadow: inset 0 0 20px rgba(11, 114, 201, 0.14);
+  padding: 12px;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px dashed rgba(128, 192, 255, 0.27);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.card-head h3 {
+  margin: 0;
+  color: #aef0ff;
+  font-size: 17px;
+}
+
+.card-head span {
+  color: #83b5df;
+  font-size: 12px;
+}
+
+.sensor-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sensor-item {
+  border: 1px solid rgba(93, 165, 251, 0.26);
+  border-radius: 10px;
+  background: rgba(9, 34, 77, 0.64);
+  padding: 8px 10px;
+}
+
+.sensor-name {
+  color: #8ec2ee;
+  font-size: 12px;
+}
+
+.sensor-value {
+  margin-top: 5px;
+  color: #d8f6ff;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.sensor-unit {
+  margin-left: 4px;
+  color: #7daedc;
+  font-size: 12px;
+}
+
+.valve-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.valve-center {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  gap: 14px;
+}
+
+.valve-row {
+  border: 1px solid rgba(96, 170, 245, 0.26);
+  border-radius: 12px;
+  background: rgba(10, 35, 76, 0.62);
+  padding: 12px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.valve-label {
+  color: #7dd8ff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.valve-status {
+  color: #a9d7ff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.valve-btn {
+  width: 170px;
+  height: 56px;
+  border-radius: 999px;
+  border: 1px solid rgba(116, 194, 255, 0.42);
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.valve-btn.is-on {
+  color: #05351d;
+  background: linear-gradient(135deg, #56ffa5, #2bdb7e);
+  box-shadow: 0 0 18px rgba(76, 255, 167, 0.36);
+}
+
+.valve-btn.is-off {
+  color: #3f0f19;
+  background: linear-gradient(135deg, #ff8ba2, #ff5f7e);
+  box-shadow: 0 0 18px rgba(255, 111, 145, 0.33);
+}
+
+.valve-tip {
+  margin: 0;
+  color: rgba(150, 190, 226, 0.72);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  max-width: 320px;
+  justify-self: center;
+}
+
+@media (max-width: 1280px) {
+  .zone-section {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .control-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .valve-screen {
+    padding: 10px;
+  }
+
+  .valve-header h1 {
+    font-size: 20px;
+  }
+
+  .zone-section {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sensor-list {
+    grid-template-columns: 1fr;
+  }
+}

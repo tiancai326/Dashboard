@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红橙果园 - 视觉诊断中心</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/yolo.css?v=20260418a">
+</head>
+<body>
+  <div class="app-shell yolo-shell" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo-wrap">
+        <div class="logo-icon">Y</div>
+        <div class="logo-text">红橙果园</div>
+      </div>
+      <nav class="menu">
+        <a class="menu-item menu-link" href="/">概览分析</a>
+        <a class="menu-item menu-link" href="/diagnosis">智能诊断</a>
+        <a class="menu-item menu-link" href="/admin">管理后台</a>
+        <a class="menu-item menu-link" href="/valve">阀门控制</a>
+        <button class="menu-item is-active" type="button">视觉诊断</button>
+      </nav>
+      <button class="collapse-btn" id="collapseBtn" type="button">收起侧栏</button>
+    </aside>
+
+    <main class="yolo-page">
+      <header class="yolo-topbar">
+        <div class="topbar-left">
+          <a class="back-link" href="/">← 返回大屏</a>
+          <h1 class="yolo-title"><span class="title-icon">🔍</span>视觉诊断与植保档案室</h1>
+        </div>
+        <div class="topbar-line"></div>
+      </header>
+
+      <section class="toolbar-wrap">
+        <div class="toolbar-row">
+          <div class="filter-list" id="filterList">
+            <div class="filter-dropdown" data-filter="time">
+              <button class="filter-btn" id="timeFilterBtn" type="button">
+                <span class="filter-icon">📅</span>
+                <span class="filter-value">今天</span>
+                <span class="filter-arrow">⌄</span>
+              </button>
+              <div class="filter-menu" id="timeFilterMenu"></div>
+            </div>
+
+            <div class="filter-dropdown" data-filter="zone">
+              <button class="filter-btn" id="zoneFilterBtn" type="button">
+                <span class="filter-icon">📍</span>
+                <span class="filter-value">全部区域</span>
+                <span class="filter-arrow">⌄</span>
+              </button>
+              <div class="filter-menu" id="zoneFilterMenu"></div>
+            </div>
+
+            <div class="filter-dropdown" data-filter="status">
+              <button class="filter-btn" id="statusFilterBtn" type="button">
+                <span class="filter-icon">🟢</span>
+                <span class="filter-value">看全部</span>
+                <span class="filter-arrow">⌄</span>
+              </button>
+              <div class="filter-menu" id="statusFilterMenu"></div>
+            </div>
+          </div>
+
+          <div class="action-list">
+            <button class="action-btn action-btn-green" type="button">⇩ 导出 Excel</button>
+            <button class="action-btn action-btn-blue" type="button">⇩ 一键导出植保报告 (PDF)</button>
+          </div>
+        </div>
+
+        <div class="toolbar-meta" id="toolbarMeta"></div>
+      </section>
+
+      <main class="card-grid" id="cardGrid"></main>
+    </main>
+  </div>
+
+  <script src="/assets/yolo.js?v=20260418a"></script>
+</body>
+</html>

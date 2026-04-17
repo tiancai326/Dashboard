@@ -113,35 +113,105 @@ function renderMetrics(metrics = {}) {
 }
 
 function renderYolo(records = [], errorMsg = "") {
-  const rows = records.slice(0, 4);
-  while (rows.length < 4) rows.push(null);
+  const fallbackRows = [
+    {
+      capture_time: "2026-04-13 10:22:15",
+      zone_id: "Zone_3",
+      result: "潜叶蛾",
+      confidence: 0.92,
+      level: "严重虫害",
+    },
+    {
+      capture_time: "2026-04-13 10:18:42",
+      zone_id: "Zone_2",
+      result: "叶片黄化",
+      confidence: 0.85,
+      level: "轻度病害",
+    },
+    {
+      capture_time: "2026-04-13 10:15:30",
+      zone_id: "Zone_5",
+      result: "健康叶片",
+      confidence: 0.98,
+      level: "果树健康",
+    },
+    {
+      capture_time: "2026-04-13 10:12:18",
+      zone_id: "Zone_1",
+      result: "健康叶片",
+      confidence: 0.97,
+      level: "果树健康",
+    },
+    {
+      capture_time: "2026-04-13 10:08:55",
+      zone_id: "Zone_4",
+      result: "健康叶片",
+      confidence: 0.99,
+      level: "果树健康",
+    },
+  ];
+
+  const normalizeSeverity = (text = "") => {
+    if (/(严重|虫害|病害|蛾|霉|腐)/.test(text)) return "danger";
+    if (/(轻度|预警|黄化|疑似|异常)/.test(text)) return "warn";
+    return "good";
+  };
+
+  const normalizeResult = (raw = "") => {
+    if (!raw) return "健康叶片";
+    if (/(healthy|normal|ok|健康)/i.test(raw)) return "健康叶片";
+    if (/(yellow|黄化)/i.test(raw)) return "叶片黄化";
+    if (/(leaf.*miner|潜叶|蛾)/i.test(raw)) return "潜叶蛾";
+    return raw;
+  };
+
+  const buildRow = (r, idx) => {
+    const captureTime = r?.capture_time || fallbackRows[idx].capture_time;
+    const zone = r?.zone_id || fallbackRows[idx].zone_id;
+    const result = normalizeResult(r?.result || fallbackRows[idx].result);
+    const confidenceRaw = Number(r?.confidence ?? fallbackRows[idx].confidence);
+    const confidenceText = Number.isFinite(confidenceRaw)
+      ? `${Math.round(confidenceRaw * 100)}%`
+      : `${Math.round(fallbackRows[idx].confidence * 100)}%`;
+    const level = r?.level || fallbackRows[idx].level;
+    const severity = normalizeSeverity(`${result} ${level}`);
+
+    return { captureTime, zone, result, confidenceText, level, severity };
+  };
+
+  const baseRows = records.length
+    ? records.slice(0, 5).map((r, idx) => buildRow(r, idx))
+    : fallbackRows.map((r, idx) => buildRow(r, idx));
+
+  if (errorMsg && baseRows[0]) {
+    baseRows[0].result = "读取失败";
+    baseRows[0].level = "接口异常";
+    baseRows[0].severity = "warn";
+  }
+
+  yoloTableEl.innerHTML = baseRows
+    .map(
+      (row) => `
+        <div class="monitor-row ${row.severity}">
+          <div class="monitor-time">${row.captureTime}</div>
+          <div class="monitor-zone">${row.zone}</div>
+          <div class="monitor-result">${row.result}</div>
+          <div class="monitor-conf">${row.confidenceText}</div>
+          <div class="monitor-tag">${row.level}</div>
+        </div>
+      `
+    )
+    .join("");
 
   yoloTableEl.innerHTML = `
-    <div class="yolo-head">
-      <div>拍摄图片</div>
-      <div>识别时间</div>
+    <div class="monitor-head">
+      <div>时间</div>
       <div>区域</div>
-      <div>病虫情况</div>
+      <div>情况</div>
+      <div>置信度</div>
+      <div></div>
     </div>
-    ${rows
-      .map((r, idx) => {
-        const status = idx === 0 && errorMsg ? errorMsg : r?.result || "--";
-        const captureTime = r?.capture_time || "--";
-        const zone = r?.zone_id || "--";
-        const imageCell = r?.image_url
-          ? `<img src="${r.image_url}" alt="识别图 ${idx + 1}" />`
-          : `<div class="yolo-thumb-empty">--</div>`;
-
-        return `
-          <div class="yolo-row">
-            <div class="yolo-cell yolo-thumb">${imageCell}</div>
-            <div class="yolo-cell">${captureTime}</div>
-            <div class="yolo-cell">${zone}</div>
-            <div class="yolo-cell">${status}</div>
-          </div>
-        `;
-      })
-      .join("")}
+    ${yoloTableEl.innerHTML}
   `;
 }
 
@@ -250,7 +320,7 @@ async function loadZoneData() {
 
 async function loadStaticPanels() {
   try {
-    const yoloRes = await fetchJson("/api/yolo-placeholder?limit=4");
+    const yoloRes = await fetchJson("/api/yolo-placeholder?limit=5");
     renderYolo(yoloRes.records || []);
   } catch (err) {
     renderYolo([], `读取失败: ${err.message}`);

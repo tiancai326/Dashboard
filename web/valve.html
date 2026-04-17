@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红橙果园 - 阀门控制</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/valve.css?v=20260418a">
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo-wrap">
+        <div class="logo-icon">Y</div>
+        <div class="logo-text">红橙果园</div>
+      </div>
+      <nav class="menu">
+        <a class="menu-item menu-link" href="/">概览分析</a>
+        <a class="menu-item menu-link" href="/diagnosis">智能诊断</a>
+        <a class="menu-item menu-link" href="/admin">管理后台</a>
+        <button class="menu-item is-active" type="button">阀门控制</button>
+        <a class="menu-item menu-link" href="/yolo">视觉诊断</a>
+      </nav>
+      <button class="collapse-btn" id="collapseBtn" type="button">收起侧栏</button>
+    </aside>
+
+    <main class="valve-screen">
+      <header class="valve-header">
+        <h1>六区域阀门控制台</h1>
+        <p id="valveHint">正在加载区域数据...</p>
+      </header>
+
+      <section class="zone-section" id="zoneSelector"></section>
+
+      <section class="control-grid">
+        <article class="control-card sensor-card">
+          <div class="card-head">
+            <h3 id="sensorTitle">Zone_1 传感器（10项）</h3>
+            <span id="sensorTimestamp">--</span>
+          </div>
+          <div class="sensor-list" id="sensorList"></div>
+        </article>
+
+        <article class="control-card valve-card">
+          <div class="card-head">
+            <h3>当前区域阀门开关</h3>
+            <span id="valveZoneText">Zone_1</span>
+          </div>
+
+          <div class="valve-center">
+            <div class="valve-row">
+              <div class="valve-label">水阀</div>
+              <div class="valve-status" id="waterValveStatus">当前状态：关闭</div>
+              <button class="valve-btn is-off" id="waterValveBtn" type="button">关闭</button>
+            </div>
+
+            <div class="valve-row">
+              <div class="valve-label">肥阀</div>
+              <div class="valve-status" id="fertValveStatus">当前状态：关闭</div>
+              <button class="valve-btn is-off" id="fertValveBtn" type="button">关闭</button>
+            </div>
+
+            <p class="valve-tip">当前为模拟控制模式，后续可接入无人机/模拟输入后的自动决策策略。</p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/assets/valve.js?v=20260418a"></script>
+</body>
+</html>

@@ -18,6 +18,8 @@
         <button class="menu-item is-active">概览分析</button>
         <a class="menu-item menu-link" href="/diagnosis">智能诊断</a>
         <a class="menu-item menu-link" href="/admin">管理后台</a>
+        <a class="menu-item menu-link" href="/valve">阀门控制</a>
+        <a class="menu-item menu-link" href="/yolo">视觉诊断</a>
       </nav>
       <button class="collapse-btn" id="collapseBtn">收起侧栏</button>
     </aside>
@@ -105,10 +107,14 @@
             </svg>
           </div>
 
-          <div class="panel-header narrow">
-            <h3>YOLO识别结果</h3>
+          <div class="yolo-monitor-header">
+            <div class="monitor-title-wrap">
+              <span class="monitor-dot" aria-hidden="true"></span>
+              <h3>空天实时巡检动态与预警</h3>
+            </div>
+            <a class="monitor-link" href="/yolo">进入视觉诊断中心 -></a>
           </div>
-          <div class="yolo-table" id="yoloTable"></div>
+          <div class="yolo-table yolo-monitor-table" id="yoloTable"></div>
         </section>
 
         <section class="panel panel-right">
