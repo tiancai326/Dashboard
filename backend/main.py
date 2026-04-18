@@ -26,6 +26,7 @@ GALLERY_DIR = BASE_DIR / "图集"
 MQTT_BROKER = os.getenv("MQTT_BROKER", "127.0.0.1")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_TOPIC_PREFIX = os.getenv("MQTT_TOPIC_PREFIX", "orchard/sensor/")
+MQTT_VALVE_ACK_TOPIC = os.getenv("MQTT_VALVE_ACK_TOPIC", "orchard/ack/zone1")
 
 DB_TABLE = os.getenv("DB_TABLE", "Real")
 PREDICTION_TABLE = os.getenv("PREDICTION_TABLE", "predictions")
@@ -71,6 +72,7 @@ mqtt_service = MqttIngestService(
     data_service=data_service,
     valid_zones=VALID_ZONES,
     topic_prefix=MQTT_TOPIC_PREFIX,
+    valve_ack_topic=MQTT_VALVE_ACK_TOPIC,
     broker=MQTT_BROKER,
     port=MQTT_PORT,
 )
