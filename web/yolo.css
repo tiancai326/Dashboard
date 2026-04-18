@@ -262,6 +262,7 @@ body {
   overflow: hidden;
   background: #173a61;
   box-shadow: 0 6px 20px rgba(3, 17, 36, 0.34);
+  cursor: pointer;
 }
 
 .thumb {
@@ -269,6 +270,14 @@ body {
   height: 252px;
   background: linear-gradient(160deg, rgba(32, 71, 108, 0.92), rgba(24, 56, 90, 0.92));
   border-bottom: 1px solid rgba(109, 171, 220, 0.22);
+}
+
+.thumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .thumb::after {
@@ -287,6 +296,23 @@ body {
   color: rgba(194, 220, 244, 0.6);
   font-size: 26px;
   letter-spacing: 0.5px;
+}
+
+.thumb-marker {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 3;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  color: #dbf7ff;
+  background: rgba(7, 36, 71, 0.82);
+  border: 1px solid rgba(86, 154, 212, 0.55);
 }
 
 .badge-left,
@@ -376,6 +402,154 @@ body {
   font-size: 13px;
   line-height: 1.35;
   min-height: 40px;
+}
+
+.diag-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+}
+
+.diag-modal.is-open {
+  display: block;
+}
+
+.diag-modal-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(1, 8, 20, 0.78);
+}
+
+.diag-modal-panel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(1120px, calc(100vw - 26px));
+  max-height: calc(100vh - 24px);
+  transform: translate(-50%, -50%);
+  display: grid;
+  grid-template-columns: minmax(320px, 46%) minmax(320px, 54%);
+  gap: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(53, 171, 240, 0.62);
+  background: linear-gradient(180deg, rgba(12, 49, 93, 0.98), rgba(8, 34, 69, 0.98));
+  box-shadow: 0 26px 54px rgba(0, 0, 0, 0.45);
+  padding: 16px;
+}
+
+.diag-modal-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  border: 0;
+  background: transparent;
+  color: rgba(204, 225, 246, 0.9);
+  font-size: 34px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.diag-image-wrap {
+  position: relative;
+  border: 1px solid rgba(95, 170, 223, 0.48);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 16, 40, 0.4);
+}
+
+.diag-image {
+  display: block;
+  width: 100%;
+  max-height: calc(100vh - 130px);
+  object-fit: contain;
+}
+
+.diag-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.diag-box {
+  position: absolute;
+  border: 2px solid #ff3951;
+  box-shadow: 0 0 0 1px rgba(255, 57, 81, 0.32);
+}
+
+.diag-box-label {
+  position: absolute;
+  left: -1px;
+  top: -30px;
+  background: #ff3951;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.diag-modal-right {
+  min-width: 0;
+  overflow: auto;
+  padding-right: 8px;
+}
+
+.diag-modal-title {
+  margin: 0 0 10px;
+  color: #1ad6ff;
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.diag-kv {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #8ebadf;
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.diag-kv strong {
+  color: #ecf8ff;
+  font-size: 36px;
+  line-height: 1.1;
+}
+
+.diag-desc {
+  margin: 14px 0;
+  border: 1px solid rgba(66, 154, 221, 0.48);
+  border-radius: 12px;
+  background: rgba(8, 32, 63, 0.8);
+  padding: 12px 14px;
+  font-size: 28px;
+  line-height: 1.4;
+  color: rgba(214, 233, 249, 0.94);
+}
+
+.diag-det-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.diag-det-chip {
+  border: 1px solid rgba(146, 103, 255, 0.5);
+  background: linear-gradient(135deg, rgba(89, 71, 158, 0.45), rgba(180, 53, 158, 0.45));
+  color: #ffd9ff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.diag-det-chip.is-ok {
+  border-color: rgba(37, 170, 131, 0.58);
+  background: rgba(20, 97, 83, 0.55);
+  color: #62f2c8;
 }
 
 @media (max-width: 1400px) {
@@ -471,5 +645,34 @@ body {
   .meta-zone,
   .meta-result {
     font-size: 16px;
+  }
+
+  .diag-modal-panel {
+    grid-template-columns: 1fr;
+    width: calc(100vw - 18px);
+    max-height: calc(100vh - 16px);
+    overflow: auto;
+    padding: 12px;
+  }
+
+  .diag-modal-title {
+    font-size: 28px;
+  }
+
+  .diag-kv {
+    font-size: 18px;
+  }
+
+  .diag-kv strong {
+    font-size: 24px;
+  }
+
+  .diag-desc {
+    font-size: 18px;
+  }
+
+  .diag-det-chip {
+    font-size: 14px;
+    padding: 6px 10px;
   }
 }

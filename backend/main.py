@@ -12,6 +12,7 @@ from backend.routes.basic_routes import build_basic_router
 from backend.services.auth_service import AuthService
 from backend.services.data_service import DataService
 from backend.services.mqtt_service import MqttIngestService
+from backend.services.yolo_service import YoloService
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -22,6 +23,9 @@ logger = logging.getLogger("dashboard-backend")
 BASE_DIR = Path(__file__).resolve().parent.parent
 WEB_DIR = BASE_DIR / "web"
 GALLERY_DIR = BASE_DIR / "图集"
+OUTPUT_DIR = BASE_DIR / "output"
+YOLO_MODEL_PATH = BASE_DIR / "yolo" / "best.pt"
+YOLO_RESULT_FILE = BASE_DIR / "backend" / "cache" / "yolo_detections.json"
 
 MQTT_BROKER = os.getenv("MQTT_BROKER", "127.0.0.1")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
@@ -56,6 +60,8 @@ if WEB_DIR.exists():
     app.mount("/assets", StaticFiles(directory=str(WEB_DIR)), name="assets")
 if GALLERY_DIR.exists():
     app.mount("/gallery", StaticFiles(directory=str(GALLERY_DIR)), name="gallery")
+if OUTPUT_DIR.exists():
+    app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
 
 
 data_service = DataService(
@@ -76,10 +82,16 @@ mqtt_service = MqttIngestService(
     broker=MQTT_BROKER,
     port=MQTT_PORT,
 )
+yolo_service = YoloService(
+    output_dir=OUTPUT_DIR,
+    model_path=YOLO_MODEL_PATH,
+    valid_zones=VALID_ZONES,
+    result_file=YOLO_RESULT_FILE,
+)
 
 app.include_router(build_auth_router(WEB_DIR, auth_service))
 app.include_router(build_basic_router(WEB_DIR))
-app.include_router(build_api_router(data_service, VALID_ZONES, METRIC_KEYS))
+app.include_router(build_api_router(data_service, yolo_service, VALID_ZONES, METRIC_KEYS))
 
 
 @app.on_event("startup")
@@ -88,6 +100,10 @@ def startup() -> None:
     data_service.ensure_real_table()
     auth_service.ensure_table()
     mqtt_service.start()
+    try:
+        yolo_service.refresh_all()
+    except Exception as exc:
+        logger.exception("YOLO initial refresh failed: %s", exc)
     logger.info("Backend service started")
 
 

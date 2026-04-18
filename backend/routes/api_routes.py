@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Request
 
 
-def build_api_router(data_service: Any, valid_zones: list[str], metric_keys: list[str]) -> APIRouter:
+def build_api_router(data_service: Any, yolo_service: Any, valid_zones: list[str], metric_keys: list[str]) -> APIRouter:
     router = APIRouter(prefix="/api")
 
     def normalize_zone(value: str) -> str:
@@ -55,10 +55,30 @@ def build_api_router(data_service: Any, valid_zones: list[str], metric_keys: lis
 
         return {"zone_id": zone, "count": len(rows), "rows": rows}
 
+    @router.get("/yolo-detections")
+    def api_yolo_detections(request: Request, limit: int = Query(5, ge=1, le=200)) -> dict[str, Any]:
+        ensure_login(request)
+        records = yolo_service.latest_detections(limit=limit)
+        return {"records": records, "count": len(records)}
+
+    @router.post("/yolo-refresh")
+    def api_yolo_refresh(request: Request, file_name: str | None = Query(default=None)) -> dict[str, Any]:
+        ensure_login(request)
+        if file_name:
+            try:
+                record = yolo_service.refresh_one(file_name)
+            except FileNotFoundError:
+                raise HTTPException(status_code=404, detail="image not found in output directory")
+            return {"mode": "single", "record": record}
+
+        records = yolo_service.refresh_all()
+        return {"mode": "all", "count": len(records)}
+
     @router.get("/yolo-placeholder")
     def api_yolo_placeholder(request: Request, limit: int = Query(4, ge=1, le=12)) -> dict[str, Any]:
         ensure_login(request)
-        return {"records": data_service.build_yolo_placeholder(limit=limit)}
+        records = yolo_service.latest_detections(limit=limit)
+        return {"records": records}
 
     @router.get("/overview")
     def api_overview(request: Request, zone_id: str = Query("zone_1")) -> dict[str, Any]:
@@ -85,7 +105,7 @@ def build_api_router(data_service: Any, valid_zones: list[str], metric_keys: lis
             "zones": data_service.build_zone_cards(),
             "latest": latest_payload,
             "predictions": prediction_rows,
-            "yolo_records": data_service.build_yolo_placeholder(limit=4),
+            "yolo_records": yolo_service.latest_detections(limit=5),
         }
 
     return router

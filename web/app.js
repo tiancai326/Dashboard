@@ -113,80 +113,33 @@ function renderMetrics(metrics = {}) {
 }
 
 function renderYolo(records = [], errorMsg = "") {
-  const fallbackRows = [
-    {
-      capture_time: "2026-04-13 10:22:15",
-      zone_id: "Zone_3",
-      result: "潜叶蛾",
-      confidence: 0.92,
-      level: "严重虫害",
-    },
-    {
-      capture_time: "2026-04-13 10:18:42",
-      zone_id: "Zone_2",
-      result: "叶片黄化",
-      confidence: 0.85,
-      level: "轻度病害",
-    },
-    {
-      capture_time: "2026-04-13 10:15:30",
-      zone_id: "Zone_5",
-      result: "健康叶片",
-      confidence: 0.98,
-      level: "果树健康",
-    },
-    {
-      capture_time: "2026-04-13 10:12:18",
-      zone_id: "Zone_1",
-      result: "健康叶片",
-      confidence: 0.97,
-      level: "果树健康",
-    },
-    {
-      capture_time: "2026-04-13 10:08:55",
-      zone_id: "Zone_4",
-      result: "健康叶片",
-      confidence: 0.99,
-      level: "果树健康",
-    },
-  ];
-
-  const normalizeSeverity = (text = "") => {
-    if (/(严重|虫害|病害|蛾|霉|腐)/.test(text)) return "danger";
-    if (/(轻度|预警|黄化|疑似|异常)/.test(text)) return "warn";
+  const severityClass = (s = "") => {
+    if (s === "danger") return "danger";
+    if (s === "warn") return "warn";
     return "good";
   };
 
-  const normalizeResult = (raw = "") => {
-    if (!raw) return "健康叶片";
-    if (/(healthy|normal|ok|健康)/i.test(raw)) return "健康叶片";
-    if (/(yellow|黄化)/i.test(raw)) return "叶片黄化";
-    if (/(leaf.*miner|潜叶|蛾)/i.test(raw)) return "潜叶蛾";
-    return raw;
-  };
+  const baseRows = records.slice(0, 5).map((r) => {
+    const conf = Number(r.summary_confidence ?? 0);
+    return {
+      captureTime: r.capture_time || "--",
+      zone: r.zone_id || "--",
+      result: r.summary_label || "健康叶片",
+      confidenceText: Number.isFinite(conf) ? `${Math.round(conf * 100)}%` : "--",
+      level: r.level_text || "果树健康",
+      severity: severityClass(r.severity),
+    };
+  });
 
-  const buildRow = (r, idx) => {
-    const captureTime = r?.capture_time || fallbackRows[idx].capture_time;
-    const zone = r?.zone_id || fallbackRows[idx].zone_id;
-    const result = normalizeResult(r?.result || fallbackRows[idx].result);
-    const confidenceRaw = Number(r?.confidence ?? fallbackRows[idx].confidence);
-    const confidenceText = Number.isFinite(confidenceRaw)
-      ? `${Math.round(confidenceRaw * 100)}%`
-      : `${Math.round(fallbackRows[idx].confidence * 100)}%`;
-    const level = r?.level || fallbackRows[idx].level;
-    const severity = normalizeSeverity(`${result} ${level}`);
-
-    return { captureTime, zone, result, confidenceText, level, severity };
-  };
-
-  const baseRows = records.length
-    ? records.slice(0, 5).map((r, idx) => buildRow(r, idx))
-    : fallbackRows.map((r, idx) => buildRow(r, idx));
-
-  if (errorMsg && baseRows[0]) {
-    baseRows[0].result = "读取失败";
-    baseRows[0].level = "接口异常";
-    baseRows[0].severity = "warn";
+  if (!baseRows.length) {
+    baseRows.push({
+      captureTime: "--",
+      zone: "--",
+      result: errorMsg ? "读取失败" : "等待无人机图片",
+      confidenceText: "--",
+      level: errorMsg ? "接口异常" : "暂无数据",
+      severity: "warn",
+    });
   }
 
   yoloTableEl.innerHTML = baseRows
@@ -320,7 +273,7 @@ async function loadZoneData() {
 
 async function loadStaticPanels() {
   try {
-    const yoloRes = await fetchJson("/api/yolo-placeholder?limit=5");
+    const yoloRes = await fetchJson("/api/yolo-detections?limit=5");
     renderYolo(yoloRes.records || []);
   } catch (err) {
     renderYolo([], `读取失败: ${err.message}`);
@@ -334,7 +287,6 @@ async function bootstrap() {
   await loadStaticPanels();
   await loadZoneData();
   setInterval(loadZoneData, 60 * 1000);
-  setInterval(loadStaticPanels, 3 * 60 * 1000);
 }
 
 bootstrap();

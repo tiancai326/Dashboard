@@ -1,77 +1,4 @@
-const diagnostics = [
-  {
-    captureTime: "2026-04-13 10:22:15",
-    zone: "Zone_3",
-    result: "潜叶蛾",
-    confidence: 92,
-    status: "danger",
-    statusBadge: "严重",
-    desc: "检测到严重虫害，建议立即处理。潜叶蛾幼虫在叶片表皮下取食，形成弯曲的虫道。",
-  },
-  {
-    captureTime: "2026-04-13 10:18:42",
-    zone: "Zone_2",
-    result: "叶片黄化",
-    confidence: 85,
-    status: "warn",
-    statusBadge: "警告",
-    desc: "检测到轻度病害，叶片出现黄化现象，可能缺氮或根系问题。",
-  },
-  {
-    captureTime: "2026-04-13 10:15:30",
-    zone: "Zone_5",
-    result: "健康叶片",
-    confidence: 98,
-    status: "healthy",
-    statusBadge: "正常",
-    desc: "叶片健康，颜色正常，无病虫害迹象。",
-  },
-  {
-    captureTime: "2026-04-13 10:12:18",
-    zone: "Zone_1",
-    result: "健康叶片",
-    confidence: 97,
-    status: "healthy",
-    statusBadge: "正常",
-    desc: "生长状态良好，叶片翠绿饱满。",
-  },
-  {
-    captureTime: "2026-04-13 10:08:55",
-    zone: "Zone_4",
-    result: "健康叶片",
-    confidence: 99,
-    status: "healthy",
-    statusBadge: "正常",
-    desc: "优秀的生长状态，继续保持当前管理措施。",
-  },
-  {
-    captureTime: "2026-04-13 09:58:32",
-    zone: "Zone_3",
-    result: "蚜虫",
-    confidence: 88,
-    status: "warn",
-    statusBadge: "警告",
-    desc: "发现蚜虫群落，建议使用生物防治或低毒去药剂。",
-  },
-  {
-    captureTime: "2026-04-13 09:45:17",
-    zone: "Zone_6",
-    result: "健康叶片",
-    confidence: 96,
-    status: "healthy",
-    statusBadge: "正常",
-    desc: "叶片健康，无异常情况。",
-  },
-  {
-    captureTime: "2026-04-13 09:32:05",
-    zone: "Zone_2",
-    result: "健康叶片",
-    confidence: 95,
-    status: "healthy",
-    statusBadge: "正常",
-    desc: "生长正常，保持现有管理。",
-  },
-];
+const diagnostics = [];
 
 const cardGrid = document.getElementById("cardGrid");
 const toolbarMeta = document.getElementById("toolbarMeta");
@@ -90,29 +17,61 @@ const filterOptions = {
     { value: "week", label: "本周" },
     { value: "month", label: "本月" },
   ],
-  zone: [
-    { value: "all", label: "全部区域" },
-    { value: "Zone_1", label: "Zone_1" },
-    { value: "Zone_2", label: "Zone_2" },
-    { value: "Zone_3", label: "Zone_3" },
-    { value: "Zone_4", label: "Zone_4" },
-    { value: "Zone_5", label: "Zone_5" },
-    { value: "Zone_6", label: "Zone_6" },
-  ],
+  zone: [{ value: "all", label: "全部区域" }],
   status: [
     { value: "all", label: "看全部", dot: "green" },
     { value: "abnormal", label: "仅看异常预警", dot: "red" },
+    { value: "healthy", label: "仅看健康样本", dot: "green" },
   ],
 };
+
+let modalEl = null;
 
 function parseCaptureTime(value) {
   return new Date(String(value).replace(" ", "T"));
 }
 
 function latestCaptureTime() {
+  if (!diagnostics.length) return new Date();
   return diagnostics
     .map((x) => parseCaptureTime(x.captureTime))
     .reduce((max, curr) => (curr > max ? curr : max), new Date(0));
+}
+
+function normalizeRecord(r) {
+  const severity = r.severity === "danger" ? "danger" : r.severity === "warn" ? "warn" : "healthy";
+  const labels = (r.detections || []).map((d) => d.label);
+  const uniqueLabels = [...new Set(labels)];
+  const desc =
+    r.description ||
+    (uniqueLabels.length
+      ? `检测到 ${r.detection_count || uniqueLabels.length} 个目标，标签: ${uniqueLabels.join("、")}`
+      : "未检测到明显病虫害目标，叶片状态正常。");
+
+  return {
+    id: r.id,
+    captureTime: r.capture_time || "--",
+    zone: r.zone_id || "--",
+    result: r.summary_label || "健康叶片",
+    confidence: Math.round(Number(r.summary_confidence || 0) * 100),
+    status: severity,
+    statusBadge: severity === "danger" ? "警告" : severity === "warn" ? "异常" : "健康",
+    desc,
+    imageUrl: r.image_url || "",
+    detections: r.detections || [],
+    imageWidth: Number(r.image_width || 0),
+    imageHeight: Number(r.image_height || 0),
+    detectionCount: Number(r.detection_count || 0),
+    levelText: r.level_text || "果树健康",
+  };
+}
+
+function refreshZoneOptions() {
+  const zones = [...new Set(diagnostics.map((x) => x.zone).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  filterOptions.zone = [{ value: "all", label: "全部区域" }, ...zones.map((z) => ({ value: z, label: z }))];
+  if (filters.zone !== "all" && !zones.includes(filters.zone)) {
+    filters.zone = "all";
+  }
 }
 
 function initSidebar() {
@@ -133,7 +92,7 @@ function renderMeta(rows) {
   const hotZone = Object.keys(hotZoneCounter).sort((a, b) => hotZoneCounter[b] - hotZoneCounter[a])[0] || "--";
 
   toolbarMeta.innerHTML = `
-    今日共巡检图片 <span class="em">${diagnostics.length}</span> 张
+    已接入原图 <span class="em">${diagnostics.length}</span> 张
     &nbsp;&nbsp;&nbsp; 发现异常 <span class="warn">${abnormalCount}</span> 处
     &nbsp;&nbsp;&nbsp; 高发区域: <span class="hot">${hotZone}</span>
     &nbsp;&nbsp;&nbsp; 当前显示 <span class="em">${rows.length}</span> 条记录
@@ -149,11 +108,16 @@ function renderCards(rows) {
   cardGrid.innerHTML = rows
     .map((item) => {
       return `
-        <article class="diag-card">
+        <article class="diag-card" data-id="${item.id}">
           <div class="thumb">
             <span class="badge-left ${item.status}">${item.statusBadge}</span>
             <span class="badge-right">${item.confidence}%</span>
-            <div class="thumb-empty-text">待接入 YOLO 图像</div>
+            ${
+              item.imageUrl
+                ? `<img class="thumb-img" src="${item.imageUrl}" alt="${item.result}" loading="lazy">`
+                : '<div class="thumb-empty-text">图片读取失败</div>'
+            }
+            <div class="thumb-marker">${item.detectionCount || 0} 个目标</div>
           </div>
           <div class="card-info">
             <div class="meta-time">⏰ ${item.captureTime}</div>
@@ -191,10 +155,96 @@ function getFilteredRows() {
     })();
 
     const hitZone = filters.zone === "all" ? true : item.zone === filters.zone;
-    const hitStatus = filters.status === "all" ? true : item.status !== "healthy";
+    const hitStatus =
+      filters.status === "all" ? true : filters.status === "abnormal" ? item.status !== "healthy" : item.status === "healthy";
 
     return hitTime && hitZone && hitStatus;
   });
+}
+
+function ensureModal() {
+  if (modalEl) return;
+  modalEl = document.createElement("div");
+  modalEl.className = "diag-modal";
+  modalEl.innerHTML = `
+    <div class="diag-modal-mask" data-close="1"></div>
+    <div class="diag-modal-panel">
+      <button class="diag-modal-close" type="button" data-close="1">×</button>
+      <div class="diag-modal-left">
+        <div class="diag-image-wrap">
+          <img id="diagModalImage" class="diag-image" src="" alt="YOLO结果">
+          <div id="diagOverlay" class="diag-overlay"></div>
+        </div>
+      </div>
+      <div class="diag-modal-right">
+        <h2 class="diag-modal-title">诊断详情</h2>
+        <div class="diag-kv"><span>检测时间</span><strong id="diagCaptureTime">--</strong></div>
+        <div class="diag-kv"><span>所属区域</span><strong id="diagZone">--</strong></div>
+        <div class="diag-kv"><span>YOLO诊断</span><strong id="diagResult">--</strong></div>
+        <div class="diag-kv"><span>置信度</span><strong id="diagConf">--</strong></div>
+        <p id="diagDesc" class="diag-desc"></p>
+        <div id="diagDetList" class="diag-det-list"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modalEl);
+
+  modalEl.addEventListener("click", (e) => {
+    if (e.target.closest("[data-close='1']")) {
+      modalEl.classList.remove("is-open");
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      modalEl.classList.remove("is-open");
+    }
+  });
+}
+
+function openDetail(item) {
+  ensureModal();
+  const image = document.getElementById("diagModalImage");
+  const overlay = document.getElementById("diagOverlay");
+
+  image.src = item.imageUrl;
+  document.getElementById("diagCaptureTime").textContent = item.captureTime;
+  document.getElementById("diagZone").textContent = item.zone;
+  document.getElementById("diagResult").textContent = item.result;
+  document.getElementById("diagConf").textContent = `${item.confidence}%`;
+  document.getElementById("diagDesc").textContent = item.desc;
+
+  const boxes = (item.detections || [])
+    .map((d) => {
+      const x1 = Number(d?.bbox?.x1 || 0);
+      const y1 = Number(d?.bbox?.y1 || 0);
+      const x2 = Number(d?.bbox?.x2 || 0);
+      const y2 = Number(d?.bbox?.y2 || 0);
+      const w = item.imageWidth || 1;
+      const h = item.imageHeight || 1;
+
+      const left = Math.max(0, Math.min(100, (x1 / w) * 100));
+      const top = Math.max(0, Math.min(100, (y1 / h) * 100));
+      const width = Math.max(0.5, Math.min(100, ((x2 - x1) / w) * 100));
+      const height = Math.max(0.5, Math.min(100, ((y2 - y1) / h) * 100));
+      const conf = Math.round(Number(d.confidence || 0) * 100);
+
+      return `
+        <div class="diag-box" style="left:${left}%;top:${top}%;width:${width}%;height:${height}%">
+          <span class="diag-box-label">${d.label} ${conf}%</span>
+        </div>
+      `;
+    })
+    .join("");
+
+  overlay.innerHTML = boxes;
+  document.getElementById("diagDetList").innerHTML = (item.detections || []).length
+    ? item.detections
+        .map((d) => `<div class="diag-det-chip">${d.label} · ${Math.round(Number(d.confidence || 0) * 100)}%</div>`)
+        .join("")
+    : '<div class="diag-det-chip is-ok">未检出异常目标</div>';
+
+  modalEl.classList.add("is-open");
 }
 
 function closeAllDropdowns() {
@@ -267,6 +317,38 @@ function renderAll() {
   renderCards(rows);
 }
 
-bindFilterEvents();
-renderAll();
-initSidebar();
+function bindCardEvents() {
+  cardGrid.addEventListener("click", (e) => {
+    const card = e.target.closest(".diag-card");
+    if (!card) return;
+    const id = card.getAttribute("data-id");
+    const item = diagnostics.find((x) => x.id === id);
+    if (item) openDetail(item);
+  });
+}
+
+async function fetchJson(url) {
+  const resp = await fetch(url);
+  if (resp.status === 401) {
+    window.location.href = "/login";
+    throw new Error("not authenticated");
+  }
+  if (!resp.ok) throw new Error(`${url} -> ${resp.status}`);
+  return resp.json();
+}
+
+async function loadDetections() {
+  const data = await fetchJson("/api/yolo-detections?limit=200");
+  diagnostics.length = 0;
+  (data.records || []).forEach((r) => diagnostics.push(normalizeRecord(r)));
+  refreshZoneOptions();
+  renderAll();
+}
+
+async function bootstrap() {
+  bindFilterEvents();
+  bindCardEvents();
+  initSidebar();
+  await loadDetections();
+}
+bootstrap();
