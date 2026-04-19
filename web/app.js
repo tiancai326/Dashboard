@@ -21,6 +21,7 @@ const predictionHintEl = document.getElementById("predictionHint");
 const yoloTableEl = document.getElementById("yoloTable");
 const quickKpiEl = document.getElementById("quickKpi");
 const appShell = document.getElementById("appShell");
+let yoloLoading = false;
 
 function getNum(v, digits = 1) {
   if (v === null || v === undefined || Number.isNaN(Number(v))) return "--";
@@ -271,12 +272,16 @@ async function loadZoneData() {
   }
 }
 
-async function loadStaticPanels() {
+async function loadYoloPanel() {
+  if (yoloLoading) return;
+  yoloLoading = true;
   try {
-    const yoloRes = await fetchJson("/api/yolo-detections?limit=5");
+    const yoloRes = await fetchJson("/api/yolo-detections?limit=5&auto_refresh=1");
     renderYolo(yoloRes.records || []);
   } catch (err) {
     renderYolo([], `读取失败: ${err.message}`);
+  } finally {
+    yoloLoading = false;
   }
 }
 
@@ -284,8 +289,9 @@ async function bootstrap() {
   initSidebar();
   initZoneSelector();
   initCharts();
-  await loadStaticPanels();
+  await loadYoloPanel();
   await loadZoneData();
+  setInterval(loadYoloPanel, 8 * 1000);
   setInterval(loadZoneData, 60 * 1000);
 }
 

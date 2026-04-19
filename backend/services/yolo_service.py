@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+from PIL import Image
+
 
 class YoloService:
     def __init__(self, output_dir: Path, model_path: Path, valid_zones: list[str], result_file: Path) -> None:
@@ -17,6 +19,8 @@ class YoloService:
         self._model_lock = threading.Lock()
         self._cache_lock = threading.Lock()
         self._cache: dict[tuple[str, int, int], dict[str, Any]] = {}
+        self.annotated_dir = self.result_file.parent / "annotated"
+        self.annotated_dir.mkdir(parents=True, exist_ok=True)
 
     def _load_model(self):
         if self._model is not None:
@@ -97,6 +101,9 @@ class YoloService:
             "id": f"{path.name}:{stat.st_mtime_ns}",
             "file_name": path.name,
             "image_url": f"/output/{quote(path.name)}",
+            "annotated_image_url": (
+                f"/annotated/{quote(infer['annotated_file_name'])}" if infer.get("annotated_file_name") else None
+            ),
             "capture_time": capture_time,
             "zone_id": zone_text,
             "summary_label": infer["summary_label"],
@@ -108,6 +115,7 @@ class YoloService:
             "image_width": infer["image_width"],
             "image_height": infer["image_height"],
             "detections": infer["detections"],
+            "annotated_file_name": infer.get("annotated_file_name"),
         }
 
     def _infer_one(self, image_path: Path) -> dict[str, Any]:
@@ -148,11 +156,19 @@ class YoloService:
                 detections.append(item)
                 if top is None or conf > top["confidence"]:
                     top = item
+
+            annotated_file_name = f"{image_path.stem}_{stat.st_mtime_ns}_yolo{image_path.suffix}"
+            annotated_path = self.annotated_dir / annotated_file_name
+            if not annotated_path.exists():
+                # Persist native YOLO rendering instead of manually drawing boxes.
+                plotted = result.plot(conf=True, labels=True)
+                Image.fromarray(plotted[:, :, ::-1]).save(annotated_path)
         except Exception:
             # Keep service available even when model dependencies are not ready.
             h, w = 0, 0
             detections = []
             top = None
+            annotated_file_name = None
 
         summary_label = top["label"] if top else "健康叶片"
         summary_conf = float(top["confidence"]) if top else 0.99
@@ -167,6 +183,7 @@ class YoloService:
             "image_width": int(w),
             "image_height": int(h),
             "detections": detections,
+            "annotated_file_name": annotated_file_name,
         }
 
         with self._cache_lock:
@@ -204,3 +221,30 @@ class YoloService:
         if not records:
             return []
         return records[:limit]
+
+    def get_record_by_file_name(self, file_name: str) -> dict[str, Any] | None:
+        for record in self._read_results():
+            if str(record.get("file_name")) == file_name:
+                return record
+        return None
+
+    def build_annotated_image(self, file_name: str) -> Path:
+        source = (self.output_dir / file_name).resolve()
+        if not source.exists() or not source.is_file():
+            raise FileNotFoundError(file_name)
+
+        record = self.get_record_by_file_name(file_name)
+        if record and record.get("annotated_file_name"):
+            annotated_path = self.annotated_dir / str(record["annotated_file_name"])
+            if annotated_path.exists():
+                return annotated_path
+
+        infer = self._infer_one(source)
+        annotated_name = infer.get("annotated_file_name")
+        if not annotated_name:
+            raise FileNotFoundError(f"annotated image not available: {file_name}")
+
+        annotated_path = self.annotated_dir / str(annotated_name)
+        if not annotated_path.exists():
+            raise FileNotFoundError(f"annotated image not found on disk: {annotated_name}")
+        return annotated_path
