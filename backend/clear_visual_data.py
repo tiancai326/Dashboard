@@ -37,14 +37,19 @@ def reset_result_file() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Clear all visual detection data")
     parser.add_argument(
+        "--clear-output",
+        action="store_true",
+        help="Also clear original images under output/ (default is keep output originals)",
+    )
+    parser.add_argument(
         "--keep-output",
         action="store_true",
-        help="Keep original images in output/ (only clear annotations and detection index)",
+        help="Deprecated compatibility flag. Output images are kept by default.",
     )
     args = parser.parse_args()
 
     removed_output = 0
-    if not args.keep_output:
+    if args.clear_output:
         removed_output = clear_folder(OUTPUT_DIR, image_only=True)
 
     removed_annotated = clear_folder(ANNOTATED_DIR, image_only=True)

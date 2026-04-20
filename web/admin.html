@@ -150,6 +150,89 @@
       color: #4af3a9;
     }
 
+    .admin-card.wide {
+      grid-column: 1 / -1;
+      min-height: auto;
+    }
+
+    .feature-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .feature-item {
+      border: 1px solid rgba(93, 176, 255, 0.3);
+      border-radius: 12px;
+      background: linear-gradient(160deg, rgba(10, 35, 82, 0.72), rgba(7, 24, 59, 0.85));
+      padding: 14px;
+      box-shadow: inset 0 0 16px rgba(24, 136, 220, 0.18);
+    }
+
+    .feature-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .feature-title {
+      margin: 0;
+      color: #def5ff;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .feature-tag {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      border: 1px solid rgba(99, 193, 255, 0.45);
+      background: rgba(14, 58, 126, 0.58);
+      color: #9fd7ff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+    }
+
+    .feature-list {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: #8fbbe3;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .feature-list li {
+      margin: 5px 0;
+    }
+
+    .feature-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .feature-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(99, 183, 255, 0.46);
+      background: rgba(7, 33, 80, 0.7);
+      color: #d9f2ff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .feature-btn:hover {
+      background: rgba(16, 58, 127, 0.75);
+    }
+
     @media (max-width: 1300px) {
       .admin-grid {
         grid-template-columns: 1fr;
@@ -183,6 +266,14 @@
       .sys-val {
         font-size: 14px;
       }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-title {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
@@ -215,12 +306,12 @@
           <p>连接和访问你的 Dify 智能体平台</p>
 
           <div class="field-label">智能体后台网址</div>
-          <div class="url-box">https://dify.mysolo.codes/</div>
+          <div class="url-box">http://1.14.148.230/</div>
           <div class="field-hint">点击下方按钮可在新窗口打开对应后台地址</div>
 
           <a
             class="open-agent-btn"
-            href="https://dify.mysolo.codes/"
+            href="http://1.14.148.230/"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -261,6 +352,44 @@
               <div class="sys-key">系统状态</div>
               <div class="sys-val ok">● 正常运行</div>
             </div>
+          </div>
+        </article>
+
+        <article class="admin-card wide">
+          <h3>智能联动能力</h3>
+          <p>基于现有无人机视觉巡检与 Agent 控制能力，实现发现问题到执行调控的一体化闭环</p>
+
+          <div class="feature-grid">
+            <section class="feature-item">
+              <div class="feature-top">
+                <h4 class="feature-title">无人机 + YOLO 巡检</h4>
+                <span class="feature-tag">视觉链路</span>
+              </div>
+              <ul class="feature-list">
+                <li>无人机定时采集果园图像，自动进入 YOLO 识别流程</li>
+                <li>实时输出病虫害与异常区域，支持按区域快速回看</li>
+                <li>可与区域环境数据联动，辅助诊断模型判断风险等级</li>
+              </ul>
+              <div class="feature-actions">
+                <a class="feature-btn" href="/yolo">进入视觉诊断</a>
+              </div>
+            </section>
+
+            <section class="feature-item">
+              <div class="feature-top">
+                <h4 class="feature-title">Agent + 阀门控制</h4>
+                <span class="feature-tag">执行链路</span>
+              </div>
+              <ul class="feature-list">
+                <li>Agent 根据预测结果与阈值策略生成灌溉调控建议</li>
+                <li>支持阀门分区开关与时长控制，覆盖多区域联动执行</li>
+                <li>可结合 MQTT 实时状态回传，实现指令闭环与异常告警</li>
+              </ul>
+              <div class="feature-actions">
+                <a class="feature-btn" href="/valve">进入阀门控制</a>
+                <a class="feature-btn" href="/diagnosis">进入智能诊断</a>
+              </div>
+            </section>
           </div>
         </article>
       </section>

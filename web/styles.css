@@ -480,7 +480,7 @@ body {
 }
 
 .yolo-monitor-table {
-  --monitor-cols: 1.5fr 0.95fr 1.2fr 92px 112px;
+  --monitor-cols: 1.85fr 0.9fr 1.1fr 92px 112px;
   margin-top: 2px;
   flex: 1 1 auto;
   min-height: 0;
@@ -512,6 +512,11 @@ body {
   visibility: hidden;
 }
 
+.monitor-head > :nth-child(2),
+.monitor-head > :nth-child(3) {
+  padding-left: 10px;
+}
+
 .monitor-row {
   width: 97%;
   margin: 0 auto;
@@ -525,6 +530,22 @@ body {
   grid-template-columns: var(--monitor-cols);
   align-items: center;
   column-gap: 14px;
+}
+
+.monitor-row.push-up {
+  animation: monitorPushUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--push-delay, 0s);
+}
+
+@keyframes monitorPushUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .monitor-row.danger {
@@ -556,11 +577,13 @@ body {
 .monitor-zone {
   color: #00d6ff;
   font-weight: 700;
+  padding-left: 10px;
 }
 
 .monitor-result {
   color: #44f6b5;
   font-weight: 700;
+  padding-left: 10px;
 }
 
 .monitor-row.warn .monitor-result {
@@ -641,7 +664,7 @@ body {
   }
 
   .yolo-monitor-table {
-    --monitor-cols: 1.35fr 0.92fr 1fr 84px 96px;
+    --monitor-cols: 1.55fr 0.88fr 0.97fr 84px 96px;
     gap: 8px;
   }
 
@@ -667,6 +690,13 @@ body {
     padding: 5px 8px;
     font-size: 12px;
   }
+
+  .monitor-head > :nth-child(2),
+  .monitor-head > :nth-child(3),
+  .monitor-zone,
+  .monitor-result {
+    padding-left: 6px;
+  }
 }
 
 @media (max-width: 860px) {
@@ -679,13 +709,13 @@ body {
   }
 
   .monitor-row {
-    grid-template-columns: 1.22fr 0.86fr 0.95fr 70px 82px;
+    grid-template-columns: 1.35fr 0.82fr 0.9fr 70px 82px;
     column-gap: 6px;
     padding: 0 7px;
   }
 
   .monitor-head {
-    grid-template-columns: 1.22fr 0.86fr 0.95fr 70px 82px;
+    grid-template-columns: 1.35fr 0.82fr 0.9fr 70px 82px;
     column-gap: 6px;
     padding: 0 7px;
     font-size: 11px;
@@ -703,5 +733,12 @@ body {
     padding: 4px 6px;
     border-radius: 6px;
     font-size: 11px;
+  }
+
+  .monitor-head > :nth-child(2),
+  .monitor-head > :nth-child(3),
+  .monitor-zone,
+  .monitor-result {
+    padding-left: 4px;
   }
 }

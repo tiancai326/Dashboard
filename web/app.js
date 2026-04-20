@@ -22,6 +22,13 @@ const yoloTableEl = document.getElementById("yoloTable");
 const quickKpiEl = document.getElementById("quickKpi");
 const appShell = document.getElementById("appShell");
 let yoloLoading = false;
+const yoloTicker = {
+  knownIds: new Set(),
+  pendingRows: [],
+  displayRows: [],
+  timer: null,
+  hydrated: false,
+};
 
 function getNum(v, digits = 1) {
   if (v === null || v === undefined || Number.isNaN(Number(v))) return "--";
@@ -113,24 +120,27 @@ function renderMetrics(metrics = {}) {
   });
 }
 
-function renderYolo(records = [], errorMsg = "") {
-  const severityClass = (s = "") => {
-    if (s === "danger") return "danger";
-    if (s === "warn") return "warn";
-    return "good";
-  };
+function severityClass(s = "") {
+  if (s === "danger") return "danger";
+  if (s === "warn") return "warn";
+  return "good";
+}
 
-  const baseRows = records.slice(0, 5).map((r) => {
-    const conf = Number(r.summary_confidence ?? 0);
-    return {
-      captureTime: r.capture_time || "--",
-      zone: r.zone_id || "--",
-      result: r.summary_label || "健康叶片",
-      confidenceText: Number.isFinite(conf) ? `${Math.round(conf * 100)}%` : "--",
-      level: r.level_text || "果树健康",
-      severity: severityClass(r.severity),
-    };
-  });
+function toYoloRow(r) {
+  const conf = Number(r.summary_confidence ?? 0);
+  return {
+    id: r.id || `${r.file_name || "unknown"}:${r.capture_time || "--"}`,
+    captureTime: r.capture_time || "--",
+    zone: r.zone_id || "--",
+    result: r.summary_label || "健康叶片",
+    confidenceText: Number.isFinite(conf) ? `${Math.round(conf * 100)}%` : "--",
+    level: r.level_text || "果树健康",
+    severity: severityClass(r.severity),
+  };
+}
+
+function renderYoloRows(rows = [], errorMsg = "", animatePush = false) {
+  const baseRows = rows.slice(0, 5);
 
   if (!baseRows.length) {
     baseRows.push({
@@ -144,17 +154,18 @@ function renderYolo(records = [], errorMsg = "") {
   }
 
   yoloTableEl.innerHTML = baseRows
-    .map(
-      (row) => `
-        <div class="monitor-row ${row.severity}">
+    .map((row, idx) => {
+      const animCls = animatePush ? " push-up" : "";
+      return `
+        <div class="monitor-row ${row.severity}${animCls}" style="--push-delay:${idx * 0.03}s;">
           <div class="monitor-time">${row.captureTime}</div>
           <div class="monitor-zone">${row.zone}</div>
           <div class="monitor-result">${row.result}</div>
           <div class="monitor-conf">${row.confidenceText}</div>
           <div class="monitor-tag">${row.level}</div>
         </div>
-      `
-    )
+      `;
+    })
     .join("");
 
   yoloTableEl.innerHTML = `
@@ -167,6 +178,54 @@ function renderYolo(records = [], errorMsg = "") {
     </div>
     ${yoloTableEl.innerHTML}
   `;
+}
+
+function startYoloTickerPlayback() {
+  if (yoloTicker.timer) return;
+
+  yoloTicker.timer = setInterval(() => {
+    const next = yoloTicker.pendingRows.shift();
+    if (!next) {
+      clearInterval(yoloTicker.timer);
+      yoloTicker.timer = null;
+      return;
+    }
+
+    const withoutDup = yoloTicker.displayRows.filter((x) => x.id !== next.id);
+    yoloTicker.displayRows = [...withoutDup, next].slice(-5);
+    renderYoloRows(yoloTicker.displayRows, "", true);
+    yoloTableEl.dataset.hasData = "1";
+  }, 550);
+}
+
+function enqueueYoloRecords(records = []) {
+  const normalized = records.map(toYoloRow);
+
+  // Keep the playback from old -> new so the list appears to roll in naturally.
+  for (let i = normalized.length - 1; i >= 0; i -= 1) {
+    const row = normalized[i];
+    if (yoloTicker.knownIds.has(row.id)) continue;
+    yoloTicker.knownIds.add(row.id);
+    yoloTicker.pendingRows.push(row);
+  }
+
+  if (yoloTicker.pendingRows.length) {
+    startYoloTickerPlayback();
+  }
+}
+
+function hydrateYoloBaseline(records = []) {
+  const normalized = records.map(toYoloRow);
+
+  // API returns newest -> oldest; baseline should be oldest -> newest for push-up playback semantics.
+  const latestFive = normalized.slice(0, 5).reverse();
+  yoloTicker.displayRows = latestFive;
+  yoloTicker.knownIds = new Set(normalized.map((x) => x.id));
+  yoloTicker.pendingRows = [];
+  yoloTicker.hydrated = true;
+
+  renderYoloRows(yoloTicker.displayRows);
+  yoloTableEl.dataset.hasData = latestFive.length ? "1" : "0";
 }
 
 function renderPrediction(rows = []) {
@@ -276,10 +335,40 @@ async function loadYoloPanel() {
   if (yoloLoading) return;
   yoloLoading = true;
   try {
-    const yoloRes = await fetchJson("/api/yolo-detections?limit=5&auto_refresh=1");
-    renderYolo(yoloRes.records || []);
+    const yoloRes = await fetchJson("/api/yolo-detections?limit=200");
+    const records = yoloRes.records || [];
+    const hadData = yoloTableEl.dataset.hasData === "1";
+
+    // Keep current panel rows when clearing cache, and only refresh UI when simulation writes new records.
+    if (!records.length && hadData) {
+      return;
+    }
+
+    if (!records.length) {
+      renderYoloRows([]);
+      yoloTableEl.dataset.hasData = "0";
+      // Mark baseline ready even when empty so later simulated inserts can animate incrementally.
+      if (!yoloTicker.hydrated) {
+        yoloTicker.hydrated = true;
+        yoloTicker.knownIds = new Set();
+        yoloTicker.pendingRows = [];
+        yoloTicker.displayRows = [];
+      }
+      return;
+    }
+
+    if (!yoloTicker.hydrated) {
+      // First paint should stay stable; only later simulated increments get animated.
+      hydrateYoloBaseline(records);
+      return;
+    }
+
+    enqueueYoloRecords(records);
   } catch (err) {
-    renderYolo([], `读取失败: ${err.message}`);
+    if (yoloTableEl.dataset.hasData !== "1") {
+      renderYoloRows([], `读取失败: ${err.message}`);
+      yoloTableEl.dataset.hasData = "0";
+    }
   } finally {
     yoloLoading = false;
   }
@@ -291,7 +380,7 @@ async function bootstrap() {
   initCharts();
   await loadYoloPanel();
   await loadZoneData();
-  setInterval(loadYoloPanel, 8 * 1000);
+  setInterval(loadYoloPanel, 1 * 1000);
   setInterval(loadZoneData, 60 * 1000);
 }
 
