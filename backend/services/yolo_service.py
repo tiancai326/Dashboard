@@ -87,7 +87,10 @@ class YoloService:
     def _build_record(self, path: Path) -> dict[str, Any]:
         infer = self._infer_one(path)
         stat = path.stat()
-        capture_time = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+        # Use simulation processing time so dashboard timestamps reflect when records are ingested/refreshed.
+        capture_dt = datetime.now()
+        capture_time = capture_dt.strftime("%Y-%m-%d %H:%M:%S")
+        capture_ts = capture_dt.timestamp()
         zone_id = self._zone_from_filename(path.name)
         zone_text = zone_id.replace("zone_", "Zone_")
 
@@ -105,6 +108,7 @@ class YoloService:
                 f"/annotated/{quote(infer['annotated_file_name'])}" if infer.get("annotated_file_name") else None
             ),
             "capture_time": capture_time,
+            "capture_ts": capture_ts,
             "zone_id": zone_text,
             "summary_label": infer["summary_label"],
             "summary_confidence": infer["summary_confidence"],
@@ -200,6 +204,8 @@ class YoloService:
         for path in images:
             records.append(self._build_record(path))
 
+        records.sort(key=lambda r: float(r.get("capture_ts", 0)), reverse=True)
+
         self._write_results(records)
         return records
 
@@ -212,7 +218,7 @@ class YoloService:
         records = self._read_results()
         records = [r for r in records if str(r.get("file_name")) != file_name]
         records.append(record)
-        records.sort(key=lambda r: str(r.get("capture_time", "")), reverse=True)
+        records.sort(key=lambda r: float(r.get("capture_ts", 0)), reverse=True)
         self._write_results(records)
         return record
 
