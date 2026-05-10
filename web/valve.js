@@ -20,6 +20,8 @@ const valveStateByZone = {
   zone_5: { water: false, fertilizer: false },
   zone_6: { water: false, fertilizer: false },
 };
+const valvePendingByZone = {};
+const valveSuccessTimers = {};
 
 const zoneSelectorEl = document.getElementById("zoneSelector");
 const sensorTitleEl = document.getElementById("sensorTitle");
@@ -79,21 +81,43 @@ function renderMetrics(metrics = {}) {
 
 function renderValveState() {
   const state = valveStateByZone[currentZone] || { water: false, fertilizer: false };
+  const pending = valvePendingByZone[currentZone] || {};
   const waterOn = Boolean(state.water);
   const fertOn = Boolean(state.fertilizer);
   const zone = zoneText(currentZone);
 
   valveZoneTextEl.textContent = zone;
 
-  waterValveStatusEl.textContent = `当前状态：${waterOn ? "开启" : "关闭"}`;
-  waterValveBtn.textContent = waterOn ? "开启" : "关闭";
-  waterValveBtn.classList.toggle("is-on", waterOn);
-  waterValveBtn.classList.toggle("is-off", !waterOn);
+  renderSingleValve("water", waterOn, pending.water, waterValveStatusEl, waterValveBtn);
+  renderSingleValve("fertilizer", fertOn, pending.fertilizer, fertValveStatusEl, fertValveBtn);
+}
 
-  fertValveStatusEl.textContent = `当前状态：${fertOn ? "开启" : "关闭"}`;
-  fertValveBtn.textContent = fertOn ? "开启" : "关闭";
-  fertValveBtn.classList.toggle("is-on", fertOn);
-  fertValveBtn.classList.toggle("is-off", !fertOn);
+function renderSingleValve(type, isOn, pending, statusEl, btnEl) {
+  const stateText = isOn ? "开启" : "关闭";
+  const label = type === "water" ? "水阀" : "肥阀";
+
+  if (pending) {
+    statusEl.textContent = `${label}正在${pending.targetOn ? "开启" : "关闭"}，等待信号发送...`;
+    btnEl.textContent = "发送中";
+    btnEl.disabled = true;
+  } else {
+    const successKey = `${currentZone}:${type}`;
+    if (valveSuccessTimers[successKey]) {
+      statusEl.textContent = `发送成功，已${isOn ? "开启" : "关闭"}`;
+    } else {
+      statusEl.textContent = `当前状态：${isOn ? "开启" : "关闭"}`;
+    }
+    btnEl.textContent = stateText;
+    btnEl.disabled = false;
+  }
+
+  setValveButtonClass(btnEl, isOn, Boolean(pending));
+}
+
+function setValveButtonClass(btnEl, isOn, isPending) {
+  btnEl.classList.toggle("is-on", isOn);
+  btnEl.classList.toggle("is-off", !isOn);
+  btnEl.classList.toggle("is-pending", isPending);
 }
 
 async function fetchJson(url) {
@@ -120,15 +144,47 @@ async function loadZoneMetrics() {
 }
 
 function initValveToggle() {
-  waterValveBtn.addEventListener("click", () => {
-    valveStateByZone[currentZone].water = !valveStateByZone[currentZone].water;
-    renderValveState();
+  waterValveBtn.addEventListener("click", async () => {
+    await toggleValve("water");
   });
 
-  fertValveBtn.addEventListener("click", () => {
-    valveStateByZone[currentZone].fertilizer = !valveStateByZone[currentZone].fertilizer;
-    renderValveState();
+  fertValveBtn.addEventListener("click", async () => {
+    await toggleValve("fertilizer");
   });
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function toggleValve(type) {
+  const zone = currentZone;
+  valveStateByZone[zone] ||= { water: false, fertilizer: false };
+  valvePendingByZone[zone] ||= {};
+  if (valvePendingByZone[zone][type]) return;
+
+  const targetOn = !Boolean(valveStateByZone[zone][type]);
+  const successKey = `${zone}:${type}`;
+  if (valveSuccessTimers[successKey]) {
+    clearTimeout(valveSuccessTimers[successKey]);
+    delete valveSuccessTimers[successKey];
+  }
+
+  valvePendingByZone[zone][type] = { targetOn };
+  renderValveState();
+
+  await wait(2000);
+  if (!valvePendingByZone[zone]?.[type]) return;
+  await wait(2000);
+
+  valveStateByZone[zone][type] = targetOn;
+  delete valvePendingByZone[zone][type];
+  valveSuccessTimers[successKey] = setTimeout(() => {
+    delete valveSuccessTimers[successKey];
+    if (currentZone === zone) renderValveState();
+  }, 1800);
+
+  if (currentZone === zone) renderValveState();
 }
 
 function initSidebar() {

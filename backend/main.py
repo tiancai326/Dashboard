@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -108,10 +109,14 @@ def startup() -> None:
     data_service.ensure_real_table()
     auth_service.ensure_table()
     mqtt_service.start()
-    try:
-        yolo_service.refresh_all()
-    except Exception as exc:
-        logger.exception("YOLO initial refresh failed: %s", exc)
+
+    def refresh_yolo_cache() -> None:
+        try:
+            yolo_service.refresh_all()
+        except Exception as exc:
+            logger.exception("YOLO initial refresh failed: %s", exc)
+
+    threading.Thread(target=refresh_yolo_cache, name="yolo-initial-refresh", daemon=True).start()
     logger.info("Backend service started")
 
 

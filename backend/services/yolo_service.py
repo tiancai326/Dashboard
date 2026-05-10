@@ -200,9 +200,15 @@ class YoloService:
             self._write_results([])
             return []
 
+        existing_by_id = {str(r.get("id")): r for r in self._read_results()}
         records: list[dict[str, Any]] = []
         for path in images:
-            records.append(self._build_record(path))
+            record = self._build_record(path)
+            old_record = existing_by_id.get(str(record.get("id")))
+            if old_record:
+                record["capture_time"] = old_record.get("capture_time", record["capture_time"])
+                record["capture_ts"] = old_record.get("capture_ts", record["capture_ts"])
+            records.append(record)
 
         records.sort(key=lambda r: float(r.get("capture_ts", 0)), reverse=True)
 
@@ -216,6 +222,11 @@ class YoloService:
 
         record = self._build_record(path)
         records = self._read_results()
+        for old_record in records:
+            if str(old_record.get("id")) == str(record.get("id")):
+                record["capture_time"] = old_record.get("capture_time", record["capture_time"])
+                record["capture_ts"] = old_record.get("capture_ts", record["capture_ts"])
+                break
         records = [r for r in records if str(r.get("file_name")) != file_name]
         records.append(record)
         records.sort(key=lambda r: float(r.get("capture_ts", 0)), reverse=True)

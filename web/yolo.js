@@ -4,6 +4,8 @@ const cardGrid = document.getElementById("cardGrid");
 const toolbarMeta = document.getElementById("toolbarMeta");
 const appShell = document.getElementById("appShell");
 const filterListEl = document.getElementById("filterList");
+const exportExcelBtn = document.getElementById("exportExcelBtn");
+const exportPdfBtn = document.getElementById("exportPdfBtn");
 
 const filters = {
   time: "today",
@@ -306,7 +308,7 @@ function openDetail(item) {
   const aiTextEl = document.getElementById("diagAiText");
   const hintEl = document.getElementById("diagDifyHint");
   const btnEl = document.getElementById("diagDifyBtn");
-  if (aiTextEl) aiTextEl.textContent = "点击下方按钮后，将发送 YOLO 带框图给 Dify 生成建议。";
+  if (aiTextEl) aiTextEl.textContent = "请您点击下方按钮，我们将会通过智能体总结病症并给出处理方案。";
   if (hintEl) hintEl.textContent = "默认不自动发送。请手动点击请求 AI 专家建议。";
   if (btnEl) {
     btnEl.disabled = false;
@@ -405,6 +407,70 @@ function bindCardEvents() {
   });
 }
 
+function filenameFromDisposition(value, fallback) {
+  if (!value) return fallback;
+  const utf8Match = value.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) return decodeURIComponent(utf8Match[1]);
+  const asciiMatch = value.match(/filename="?([^";]+)"?/i);
+  return asciiMatch?.[1] || fallback;
+}
+
+async function downloadFile(url, fallbackName, btn) {
+  const oldText = btn?.textContent;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "正在生成...";
+  }
+
+  try {
+    const resp = await fetch(url);
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const contentType = resp.headers.get("content-type") || "";
+    if (!resp.ok || contentType.includes("application/json")) {
+      let detail = `导出失败：${resp.status}`;
+      try {
+        const data = await resp.json();
+        detail = data?.detail || detail;
+      } catch (_) {
+        // Keep status-based message.
+      }
+      throw new Error(detail);
+    }
+
+    const blob = await resp.blob();
+    const filename = filenameFromDisposition(resp.headers.get("content-disposition"), fallbackName);
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    alert(err.message || "导出失败，请稍后重试。");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+}
+
+function bindExportEvents() {
+  exportExcelBtn?.addEventListener("click", async () => {
+    await downloadFile(`/api/yolo-export/excel?t=${Date.now()}`, "yolo_detections.xlsx", exportExcelBtn);
+  });
+
+  exportPdfBtn?.addEventListener("click", async () => {
+    await downloadFile(`/api/yolo-export/pdf?t=${Date.now()}`, "yolo_report.pdf", exportPdfBtn);
+  });
+}
+
 async function fetchJson(url) {
   const resp = await fetch(url);
   if (resp.status === 401) {
@@ -416,7 +482,7 @@ async function fetchJson(url) {
 }
 
 async function loadDetections() {
-  const data = await fetchJson("/api/yolo-detections?limit=200");
+  const data = await fetchJson("/api/yolo-detections?limit=200&auto_refresh=true");
   diagnostics.length = 0;
   (data.records || []).forEach((r) => diagnostics.push(normalizeRecord(r)));
   refreshZoneOptions();
@@ -426,6 +492,7 @@ async function loadDetections() {
 async function bootstrap() {
   bindFilterEvents();
   bindCardEvents();
+  bindExportEvents();
   initSidebar();
   await loadDetections();
 }
