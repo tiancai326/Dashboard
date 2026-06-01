@@ -22,6 +22,8 @@ const valveStateByZone = {
 };
 const valvePendingByZone = {};
 const valveSuccessTimers = {};
+const waterCountdownTimers = {};
+const waterCountdownRemaining = {};
 
 const zoneSelectorEl = document.getElementById("zoneSelector");
 const sensorTitleEl = document.getElementById("sensorTitle");
@@ -32,8 +34,31 @@ const waterValveStatusEl = document.getElementById("waterValveStatus");
 const fertValveStatusEl = document.getElementById("fertValveStatus");
 const waterValveBtn = document.getElementById("waterValveBtn");
 const fertValveBtn = document.getElementById("fertValveBtn");
+const waterDurationHoursEl = document.getElementById("waterDurationHours");
+const waterDurationMinutesEl = document.getElementById("waterDurationMinutes");
+const waterDurationSecondsEl = document.getElementById("waterDurationSeconds");
+const autoControlBtn = document.getElementById("autoControlBtn");
+const autoControlText = document.getElementById("autoControlText");
 const valveHintEl = document.getElementById("valveHint");
+const valveModalEl = document.getElementById("valveModal");
+const valveModalMessageEl = document.getElementById("valveModalMessage");
 const appShell = document.getElementById("appShell");
+let autoControlEnabled = false;
+let autoControlPending = false;
+let autoControlPendingTarget = false;
+
+function showValveModal(message) {
+  if (!valveModalEl || !valveModalMessageEl) return;
+  valveModalMessageEl.textContent = message;
+  valveModalEl.classList.add("is-visible");
+  valveModalEl.setAttribute("aria-hidden", "false");
+}
+
+function hideValveModal() {
+  if (!valveModalEl) return;
+  valveModalEl.classList.remove("is-visible");
+  valveModalEl.setAttribute("aria-hidden", "true");
+}
 
 function zoneText(zoneId) {
   return zoneId.replace("zone_", "Zone_");
@@ -102,7 +127,11 @@ function renderSingleValve(type, isOn, pending, statusEl, btnEl) {
     btnEl.disabled = true;
   } else {
     const successKey = `${currentZone}:${type}`;
-    if (valveSuccessTimers[successKey]) {
+    const countdownKey = `${currentZone}:${type}`;
+    if (type === "water" && waterCountdownRemaining[countdownKey] !== undefined && isOn) {
+      const remaining = waterCountdownRemaining[countdownKey];
+      statusEl.textContent = `水阀已开启，倒计时 ${formatDuration(remaining)}`;
+    } else if (valveSuccessTimers[successKey]) {
       statusEl.textContent = `发送成功，已${isOn ? "开启" : "关闭"}`;
     } else {
       statusEl.textContent = `当前状态：${isOn ? "开启" : "关闭"}`;
@@ -130,6 +159,30 @@ async function fetchJson(url) {
   return resp.json();
 }
 
+async function postJson(url, payload) {
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (resp.status === 401) {
+    window.location.href = "/login";
+    throw new Error("not authenticated");
+  }
+  if (!resp.ok) throw new Error(`${url} -> ${resp.status}`);
+  return resp.json();
+}
+
+async function fetchAck() {
+  const resp = await fetch("/api/valve/ack");
+  if (resp.status === 401) {
+    window.location.href = "/login";
+    throw new Error("not authenticated");
+  }
+  if (!resp.ok) throw new Error(`/api/valve/ack -> ${resp.status}`);
+  return resp.json();
+}
+
 async function loadZoneMetrics() {
   try {
     const data = await fetchJson(`/api/latest?zone_id=${currentZone}`);
@@ -151,10 +204,129 @@ function initValveToggle() {
   fertValveBtn.addEventListener("click", async () => {
     await toggleValve("fertilizer");
   });
+
+  autoControlBtn?.addEventListener("click", async () => {
+    await toggleAutoControl();
+  });
+}
+
+function renderAutoControl() {
+  if (!autoControlBtn || !autoControlText) return;
+  if (autoControlPending) {
+    autoControlBtn.textContent = autoControlPendingTarget ? "正在启动..." : "正在关闭...";
+    autoControlText.textContent = autoControlPendingTarget
+      ? "智能体正在接管水肥阀门控制，请稍候"
+      : "智能体正在退出水肥阀门控制，请稍候";
+    autoControlBtn.disabled = true;
+  } else {
+    autoControlBtn.textContent = autoControlEnabled ? "全自动化管理已开启" : "开启全自动化管理";
+    autoControlText.textContent = "如您想全自动化管理，请点击该按钮开启";
+    autoControlBtn.disabled = false;
+  }
+  autoControlBtn.classList.toggle("is-active", autoControlEnabled);
+  autoControlBtn.classList.toggle("is-pending", autoControlPending);
+}
+
+async function toggleAutoControl() {
+  if (autoControlPending) return;
+
+  const targetEnabled = !autoControlEnabled;
+  autoControlPending = true;
+  autoControlPendingTarget = targetEnabled;
+  renderAutoControl();
+  await wait(4000);
+  autoControlPending = false;
+  autoControlEnabled = targetEnabled;
+  renderAutoControl();
 }
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function formatDuration(totalSeconds) {
+  const sec = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(sec / 3600);
+  const minutes = Math.floor((sec % 3600) / 60);
+  const seconds = sec % 60;
+  if (hours > 0) return `${hours}小时${minutes}分${seconds}秒`;
+  if (minutes > 0) return `${minutes}分${seconds}秒`;
+  return `${seconds}秒`;
+}
+
+function getWaterDurationSeconds() {
+  const hours = Number(waterDurationHoursEl?.value || 0);
+  const minutes = Number(waterDurationMinutesEl?.value || 0);
+  const seconds = Number(waterDurationSecondsEl?.value || 0);
+  const total = Math.max(0, hours * 3600 + minutes * 60 + seconds);
+  return total;
+}
+
+function stopWaterCountdown(zone) {
+  const key = `${zone}:water`;
+  if (waterCountdownTimers[key]) {
+    clearInterval(waterCountdownTimers[key]);
+    delete waterCountdownTimers[key];
+  }
+  delete waterCountdownRemaining[key];
+}
+
+async function waitForAck(startEpochSeconds, timeoutMs = 12000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const data = await fetchAck();
+    const ack = data?.ack;
+    if (ack && ack.status === "ok" && ack.received_at && ack.received_at >= startEpochSeconds - 1) {
+      return ack;
+    }
+    await wait(800);
+  }
+  return null;
+}
+
+async function autoCloseWaterValve(zone) {
+  const sentAt = Date.now() / 1000;
+  try {
+    await postJson("/api/valve/drainage", {
+      value: 0,
+      zone_id: zone,
+      source: "dashboard-auto",
+    });
+    const ack = await waitForAck(sentAt);
+    if (!ack) {
+      valveHintEl.textContent = "自动关闭未收到确认";
+      showValveModal("自动关闭失败：未收到确认");
+      return false;
+    }
+    return true;
+  } catch (err) {
+    valveHintEl.textContent = `自动关闭失败：${err.message}`;
+    showValveModal(`自动关闭失败：${err.message}`);
+    return false;
+  }
+}
+
+function startWaterCountdown(zone, duration) {
+  const key = `${zone}:water`;
+  stopWaterCountdown(zone);
+  waterCountdownRemaining[key] = duration;
+  waterCountdownTimers[key] = setInterval(async () => {
+    waterCountdownRemaining[key] -= 1;
+    if (waterCountdownRemaining[key] <= 0) {
+      stopWaterCountdown(zone);
+      valvePendingByZone[zone].water = { targetOn: false };
+      if (currentZone === zone) renderValveState();
+      const closed = await autoCloseWaterValve(zone);
+      delete valvePendingByZone[zone].water;
+      if (closed) {
+        valveStateByZone[zone].water = false;
+        if (currentZone === zone) renderValveState();
+      }
+      return;
+    }
+    if (currentZone === zone) renderValveState();
+  }, 1000);
+  if (currentZone === zone) renderValveState();
 }
 
 async function toggleValve(type) {
@@ -170,15 +342,55 @@ async function toggleValve(type) {
     delete valveSuccessTimers[successKey];
   }
 
+  if (type === "water" && !targetOn) {
+    stopWaterCountdown(zone);
+  }
+
   valvePendingByZone[zone][type] = { targetOn };
   renderValveState();
 
-  await wait(2000);
-  if (!valvePendingByZone[zone]?.[type]) return;
-  await wait(2000);
+  if (type === "water") {
+    const duration = getWaterDurationSeconds();
+    if (targetOn && duration <= 0) {
+      delete valvePendingByZone[zone][type];
+      valveHintEl.textContent = "请输入水阀开启时长（秒）";
+      renderValveState();
+      return;
+    }
+    try {
+      const sentAt = Date.now() / 1000;
+      await postJson("/api/valve/drainage", {
+        value: targetOn ? 1 : 0,
+        duration: targetOn ? duration : undefined,
+        zone_id: zone,
+        source: "dashboard",
+      });
+      const ack = await waitForAck(sentAt);
+      if (!ack) {
+        delete valvePendingByZone[zone][type];
+        valveHintEl.textContent = "未收到水阀确认信号";
+        showValveModal("水阀操作失败：未收到确认");
+        renderValveState();
+        return;
+      }
+    } catch (err) {
+      delete valvePendingByZone[zone][type];
+      valveHintEl.textContent = `排水命令发送失败：${err.message}`;
+      showValveModal(`水阀操作失败：${err.message}`);
+      renderValveState();
+      return;
+    }
+  }
 
   valveStateByZone[zone][type] = targetOn;
   delete valvePendingByZone[zone][type];
+  if (type === "water") {
+    if (targetOn) {
+      startWaterCountdown(zone, getWaterDurationSeconds());
+    } else {
+      stopWaterCountdown(zone);
+    }
+  }
   valveSuccessTimers[successKey] = setTimeout(() => {
     delete valveSuccessTimers[successKey];
     if (currentZone === zone) renderValveState();
@@ -194,11 +406,24 @@ function initSidebar() {
   });
 }
 
+function initValveModal() {
+  if (!valveModalEl) return;
+  valveModalEl.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.dataset.action === "close") {
+      hideValveModal();
+    }
+  });
+}
+
 async function bootstrap() {
   initSidebar();
+  initValveModal();
   initValveToggle();
   renderZoneButtons();
   renderValveState();
+  renderAutoControl();
   await loadZoneMetrics();
 }
 

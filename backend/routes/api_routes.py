@@ -18,6 +18,20 @@ class DifyAnalyzeRequest(BaseModel):
     description: str | None = None
 
 
+class ValveCommandRequest(BaseModel):
+    action: str
+    zone_id: str | None = None
+    duration: int | None = None
+    source: str | None = None
+
+
+class ValveDrainageRequest(BaseModel):
+    value: int
+    duration: int | None = None
+    zone_id: str | None = None
+    source: str | None = None
+
+
 def _severity_text(value: Any) -> str:
     if value == "danger":
         return "严重"
@@ -320,6 +334,7 @@ def build_api_router(
     data_service: Any,
     yolo_service: Any,
     dify_service: Any,
+    mqtt_service: Any,
     output_dir: Path,
     valid_zones: list[str],
     metric_keys: list[str],
@@ -473,6 +488,61 @@ def build_api_router(
         ensure_login(request)
         records = yolo_service.latest_detections(limit=limit)
         return {"records": records}
+
+    @router.post("/valve/command")
+    def api_valve_command(request: Request, body: ValveCommandRequest) -> dict[str, Any]:
+        ensure_login(request)
+        action = body.action.strip().lower()
+        if action not in {"open", "close"}:
+            raise HTTPException(status_code=400, detail="invalid action")
+
+        payload: dict[str, Any] = {"action": action}
+        if body.zone_id:
+            payload["zone_id"] = normalize_zone(body.zone_id)
+        if body.duration is not None:
+            if body.duration <= 0:
+                raise HTTPException(status_code=400, detail="duration must be positive")
+            payload["duration"] = body.duration
+        if body.source:
+            payload["source"] = body.source
+
+        try:
+            result = mqtt_service.publish_valve_command(payload)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        return {"sent": True, "payload": payload, "result": result}
+
+    @router.post("/valve/drainage")
+    def api_valve_drainage(request: Request, body: ValveDrainageRequest) -> dict[str, Any]:
+        ensure_login(request)
+        if body.value not in (0, 1):
+            raise HTTPException(status_code=400, detail="value must be 0 or 1")
+
+        payload: dict[str, Any] = {"valve": body.value}
+        if body.value == 1:
+            if body.duration is None or body.duration <= 0:
+                raise HTTPException(status_code=400, detail="duration must be positive for open")
+            payload["duration"] = body.duration
+
+        meta: dict[str, Any] = {"value": body.value}
+        if body.duration is not None:
+            meta["duration"] = body.duration
+        if body.zone_id:
+            meta["zone_id"] = normalize_zone(body.zone_id)
+        if body.source:
+            meta["source"] = body.source
+
+        try:
+            result = mqtt_service.publish_valve_command(payload)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        return {"sent": True, "payload": meta, "result": result}
+
+    @router.get("/valve/ack")
+    def api_valve_ack(request: Request) -> dict[str, Any]:
+        ensure_login(request)
+        ack = mqtt_service.get_last_valve_ack()
+        return {"ack": ack}
 
     @router.get("/overview")
     def api_overview(request: Request, zone_id: str = Query("zone_1")) -> dict[str, Any]:

@@ -5,6 +5,67 @@
     radial-gradient(circle at 22% 12%, rgba(8, 118, 255, 0.2), transparent 44%),
     radial-gradient(circle at 84% 18%, rgba(0, 229, 255, 0.14), transparent 40%),
     linear-gradient(135deg, #060d1f, #03142f);
+  position: relative;
+}
+
+.valve-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.valve-modal.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.valve-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 12, 26, 0.55);
+}
+
+.valve-modal-card {
+  position: relative;
+  width: min(420px, 88vw);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 130, 130, 0.6);
+  background: rgba(20, 8, 22, 0.96);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  padding: 20px 20px 16px;
+  display: grid;
+  gap: 10px;
+  text-align: center;
+  color: #ffe3e3;
+}
+
+.valve-modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.valve-modal-message {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #ffd2d7;
+}
+
+.valve-modal-btn {
+  margin-top: 4px;
+  justify-self: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 150, 160, 0.6);
+  background: linear-gradient(135deg, #ff93a8, #ff6f7e);
+  color: #3f0f19;
+  font-weight: 800;
+  padding: 8px 24px;
+  cursor: pointer;
 }
 
 .valve-header {
@@ -147,6 +208,34 @@
   gap: 8px;
 }
 
+.valve-duration {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-self: flex-start;
+  margin-left: -8px;
+  color: #9cd6ff;
+  font-size: 12px;
+}
+
+.valve-duration label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.duration-input {
+  width: 64px;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 194, 255, 0.42);
+  background: rgba(6, 22, 50, 0.7);
+  color: #d8f6ff;
+  padding: 4px 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
 .valve-label {
   color: #7dd8ff;
   font-size: 14px;
@@ -191,6 +280,68 @@
 
 .valve-btn:disabled {
   opacity: 0.92;
+}
+
+.auto-control {
+  margin-top: 18px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 16px 12px 8px;
+}
+
+.auto-control-btn {
+  width: min(520px, 92vw);
+  height: 74px;
+  border: 1px solid rgba(133, 234, 255, 0.82);
+  border-radius: 999px;
+  color: #06334a;
+  background: linear-gradient(135deg, #6cf5ff, #4da8ff);
+  box-shadow:
+    0 0 26px rgba(78, 181, 255, 0.46),
+    inset 0 0 18px rgba(255, 255, 255, 0.24);
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.auto-control-btn.is-active {
+  color: #06351f;
+  background: linear-gradient(135deg, #68ffb0, #2fdf83);
+  box-shadow:
+    0 0 26px rgba(88, 255, 178, 0.46),
+    inset 0 0 18px rgba(255, 255, 255, 0.22);
+}
+
+.auto-control-btn.is-pending {
+  color: #4a2c04;
+  background: linear-gradient(135deg, #ffe27a, #ffb13d);
+  box-shadow:
+    0 0 26px rgba(255, 190, 75, 0.44),
+    inset 0 0 18px rgba(255, 255, 255, 0.24);
+  cursor: wait;
+}
+
+.auto-control-btn:disabled {
+  opacity: 0.94;
+}
+
+.auto-control-text {
+  margin: 0;
+  color: rgba(204, 238, 255, 0.86);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.auto-control-desc {
+  max-width: 680px;
+  margin: 0;
+  color: rgba(255, 216, 130, 0.86);
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: center;
 }
 
 .valve-tip {

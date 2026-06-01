@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>红橙果园 - 阀门控制</title>
   <link rel="stylesheet" href="/assets/styles.css">
-  <link rel="stylesheet" href="/assets/valve.css?v=20260510a">
+  <link rel="stylesheet" href="/assets/valve.css?v=20260529a">
 </head>
 <body>
   <div class="app-shell" id="appShell">
@@ -51,6 +51,20 @@
             <div class="valve-row">
               <div class="valve-label">水阀</div>
               <div class="valve-status" id="waterValveStatus">当前状态：关闭</div>
+              <div class="valve-duration">
+                <label>
+                    <input class="duration-input" id="waterDurationHours" type="number" min="0" max="24" value="0">                  
+                    <span>时</span>
+                </label>
+                <label>
+                  <input class="duration-input" id="waterDurationMinutes" type="number" min="0" max="59" value="2">
+                    <span>分</span>
+                </label>
+                <label>
+                  <input class="duration-input" id="waterDurationSeconds" type="number" min="0" max="59" value="0">
+                    <span>秒</span>
+                </label>
+              </div>
               <button class="valve-btn is-off" id="waterValveBtn" type="button">关闭</button>
             </div>
 
@@ -62,9 +76,24 @@
           </div>
         </article>
       </section>
+
+      <section class="auto-control">
+        <button class="auto-control-btn" id="autoControlBtn" type="button">开启全自动化管理</button>
+        <p class="auto-control-text" id="autoControlText">如您想全自动化管理，请点击该按钮开启</p>
+        <p class="auto-control-desc">如果开启该按钮，智能体将自动接管水肥阀门控制，智能体分辨可能有误差，可以考虑是否启动</p>
+      </section>
     </main>
   </div>
 
-  <script src="/assets/valve.js?v=20260510a"></script>
+  <div class="valve-modal" id="valveModal" aria-hidden="true">
+    <div class="valve-modal-backdrop" data-action="close"></div>
+    <div class="valve-modal-card" role="alert" aria-live="assertive">
+      <div class="valve-modal-title">操作失败</div>
+      <div class="valve-modal-message" id="valveModalMessage">--</div>
+      <button class="valve-modal-btn" data-action="close" type="button">知道了</button>
+    </div>
+  </div>
+
+  <script src="/assets/valve.js?v=20260529d"></script>
 </body>
 </html>

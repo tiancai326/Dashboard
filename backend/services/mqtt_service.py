@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from typing import Any
 
 import paho.mqtt.client as mqtt
@@ -15,6 +16,7 @@ class MqttIngestService:
         valid_zones: list[str],
         topic_prefix: str,
         valve_ack_topic: str,
+        valve_cmd_topic: str,
         broker: str,
         port: int,
     ) -> None:
@@ -22,6 +24,7 @@ class MqttIngestService:
         self.valid_zones = valid_zones
         self.topic_prefix = topic_prefix
         self.valve_ack_topic = valve_ack_topic
+        self.valve_cmd_topic = valve_cmd_topic
         self.broker = broker
         self.port = port
         self.sub_topics = [(f"{self.topic_prefix}{zone}", 0) for zone in self.valid_zones]
@@ -29,6 +32,7 @@ class MqttIngestService:
         self.sub_topics += [(self.valve_ack_topic, 0)]
         self.client: mqtt.Client | None = None
         self.started = False
+        self.last_valve_ack: dict[str, Any] | None = None
 
     @staticmethod
     def normalize_zone(value: str) -> str:
@@ -59,6 +63,13 @@ class MqttIngestService:
 
         status = str(payload.get("status", "")).lower()
         message = str(payload.get("msg", payload.get("message", "")))
+        self.last_valve_ack = {
+            "topic": msg.topic,
+            "status": status,
+            "message": message,
+            "payload": payload,
+            "received_at": time.time(),
+        }
         if status == "ok":
             logger.info("Valve ACK success: topic=%s status=%s msg=%s payload=%s", msg.topic, status, message, payload)
         else:
@@ -101,3 +112,30 @@ class MqttIngestService:
             self.client.loop_stop()
             self.client.disconnect()
         self.started = False
+
+    def publish_valve_command(self, payload: dict[str, Any], qos: int = 0) -> dict[str, Any]:
+        if self.client is None or not self.started:
+            raise RuntimeError("MQTT client not started")
+
+        result = self.client.publish(self.valve_cmd_topic, json.dumps(payload), qos=qos)
+        result.wait_for_publish(timeout=2)
+        return {
+            "topic": self.valve_cmd_topic,
+            "qos": qos,
+            "rc": result.rc,
+        }
+
+    def publish_valve_raw(self, payload: str, qos: int = 0) -> dict[str, Any]:
+        if self.client is None or not self.started:
+            raise RuntimeError("MQTT client not started")
+
+        result = self.client.publish(self.valve_cmd_topic, payload, qos=qos)
+        result.wait_for_publish(timeout=2)
+        return {
+            "topic": self.valve_cmd_topic,
+            "qos": qos,
+            "rc": result.rc,
+        }
+
+    def get_last_valve_ack(self) -> dict[str, Any] | None:
+        return dict(self.last_valve_ack) if self.last_valve_ack else None

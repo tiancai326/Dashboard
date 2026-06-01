@@ -35,6 +35,7 @@ MQTT_BROKER = os.getenv("MQTT_BROKER", "127.0.0.1")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_TOPIC_PREFIX = os.getenv("MQTT_TOPIC_PREFIX", "orchard/sensor/")
 MQTT_VALVE_ACK_TOPIC = os.getenv("MQTT_VALVE_ACK_TOPIC", "orchard/ack/zone1")
+MQTT_VALVE_CMD_TOPIC = os.getenv("MQTT_VALVE_CMD_TOPIC", "orchard/cmd/zone1")
 
 DB_TABLE = os.getenv("DB_TABLE", "Real")
 PREDICTION_TABLE = os.getenv("PREDICTION_TABLE", "predictions")
@@ -87,6 +88,7 @@ mqtt_service = MqttIngestService(
     valid_zones=VALID_ZONES,
     topic_prefix=MQTT_TOPIC_PREFIX,
     valve_ack_topic=MQTT_VALVE_ACK_TOPIC,
+    valve_cmd_topic=MQTT_VALVE_CMD_TOPIC,
     broker=MQTT_BROKER,
     port=MQTT_PORT,
 )
@@ -100,7 +102,7 @@ dify_service = DifyService(base_url=DIFY_BASE_URL, api_key=DIFY_API_KEY, timeout
 
 app.include_router(build_auth_router(WEB_DIR, auth_service))
 app.include_router(build_basic_router(WEB_DIR))
-app.include_router(build_api_router(data_service, yolo_service, dify_service, OUTPUT_DIR, VALID_ZONES, METRIC_KEYS))
+app.include_router(build_api_router(data_service, yolo_service, dify_service, mqtt_service, OUTPUT_DIR, VALID_ZONES, METRIC_KEYS))
 
 
 @app.on_event("startup")
