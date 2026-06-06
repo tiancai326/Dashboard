@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>红橙果园 - 阀门控制</title>
   <link rel="stylesheet" href="/assets/styles.css">
-  <link rel="stylesheet" href="/assets/valve.css?v=20260529a">
+  <link rel="stylesheet" href="/assets/valve.css?v=20260606a">
 </head>
 <body>
   <div class="app-shell" id="appShell">
@@ -17,7 +17,6 @@
       <nav class="menu">
         <a class="menu-item menu-link" href="/">概览分析</a>
         <a class="menu-item menu-link" href="/diagnosis">智能诊断</a>
-        <a class="menu-item menu-link" href="/admin">管理后台</a>
         <button class="menu-item is-active" type="button">阀门控制</button>
         <a class="menu-item menu-link" href="/yolo">视觉诊断</a>
       </nav>
@@ -94,6 +93,15 @@
     </div>
   </div>
 
-  <script src="/assets/valve.js?v=20260529d"></script>
+  <div class="auto-modal" id="autoModal" aria-hidden="true">
+    <div class="auto-modal-backdrop" data-auto-action="close"></div>
+    <div class="auto-modal-card" role="dialog" aria-modal="true" aria-label="全自动化管理流程图">
+      <button class="auto-modal-close" data-auto-action="close" type="button" aria-label="关闭">×</button>
+      <img class="auto-modal-image" src="/assets/lct.png" alt="全自动化管理流程图">
+      <p class="auto-modal-desc">全自动化管理即将上线，原理如图所示，敬请期待。</p>
+    </div>
+  </div>
+
+  <script src="/assets/valve.js?v=20260606a"></script>
 </body>
 </html>

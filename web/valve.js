@@ -42,10 +42,8 @@ const autoControlText = document.getElementById("autoControlText");
 const valveHintEl = document.getElementById("valveHint");
 const valveModalEl = document.getElementById("valveModal");
 const valveModalMessageEl = document.getElementById("valveModalMessage");
+const autoModalEl = document.getElementById("autoModal");
 const appShell = document.getElementById("appShell");
-let autoControlEnabled = false;
-let autoControlPending = false;
-let autoControlPendingTarget = false;
 
 function showValveModal(message) {
   if (!valveModalEl || !valveModalMessageEl) return;
@@ -58,6 +56,18 @@ function hideValveModal() {
   if (!valveModalEl) return;
   valveModalEl.classList.remove("is-visible");
   valveModalEl.setAttribute("aria-hidden", "true");
+}
+
+function showAutoModal() {
+  if (!autoModalEl) return;
+  autoModalEl.classList.add("is-visible");
+  autoModalEl.setAttribute("aria-hidden", "false");
+}
+
+function hideAutoModal() {
+  if (!autoModalEl) return;
+  autoModalEl.classList.remove("is-visible");
+  autoModalEl.setAttribute("aria-hidden", "true");
 }
 
 function zoneText(zoneId) {
@@ -205,39 +215,17 @@ function initValveToggle() {
     await toggleValve("fertilizer");
   });
 
-  autoControlBtn?.addEventListener("click", async () => {
-    await toggleAutoControl();
+  autoControlBtn?.addEventListener("click", () => {
+    showAutoModal();
   });
 }
 
 function renderAutoControl() {
   if (!autoControlBtn || !autoControlText) return;
-  if (autoControlPending) {
-    autoControlBtn.textContent = autoControlPendingTarget ? "正在启动..." : "正在关闭...";
-    autoControlText.textContent = autoControlPendingTarget
-      ? "智能体正在接管水肥阀门控制，请稍候"
-      : "智能体正在退出水肥阀门控制，请稍候";
-    autoControlBtn.disabled = true;
-  } else {
-    autoControlBtn.textContent = autoControlEnabled ? "全自动化管理已开启" : "开启全自动化管理";
-    autoControlText.textContent = "如您想全自动化管理，请点击该按钮开启";
-    autoControlBtn.disabled = false;
-  }
-  autoControlBtn.classList.toggle("is-active", autoControlEnabled);
-  autoControlBtn.classList.toggle("is-pending", autoControlPending);
-}
-
-async function toggleAutoControl() {
-  if (autoControlPending) return;
-
-  const targetEnabled = !autoControlEnabled;
-  autoControlPending = true;
-  autoControlPendingTarget = targetEnabled;
-  renderAutoControl();
-  await wait(4000);
-  autoControlPending = false;
-  autoControlEnabled = targetEnabled;
-  renderAutoControl();
+  autoControlBtn.textContent = "开启全自动化管理";
+  autoControlText.textContent = "如您想全自动化管理，请点击该按钮开启";
+  autoControlBtn.disabled = false;
+  autoControlBtn.classList.remove("is-active", "is-pending");
 }
 
 function wait(ms) {
@@ -417,9 +405,26 @@ function initValveModal() {
   });
 }
 
+function initAutoModal() {
+  if (!autoModalEl) return;
+  autoModalEl.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.dataset.autoAction === "close") {
+      hideAutoModal();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      hideAutoModal();
+    }
+  });
+}
+
 async function bootstrap() {
   initSidebar();
   initValveModal();
+  initAutoModal();
   initValveToggle();
   renderZoneButtons();
   renderValveState();

@@ -68,6 +68,84 @@
   cursor: pointer;
 }
 
+.auto-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.auto-modal.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.auto-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 12, 26, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.auto-modal-card {
+  position: relative;
+  width: min(980px, 92vw);
+  max-height: 90vh;
+  border: 1px solid rgba(133, 234, 255, 0.46);
+  border-radius: 14px;
+  background: rgba(7, 22, 53, 0.96);
+  box-shadow:
+    0 22px 54px rgba(0, 0, 0, 0.5),
+    inset 0 0 24px rgba(17, 121, 214, 0.2);
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+  color: #d8f6ff;
+}
+
+.auto-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(184, 230, 255, 0.58);
+  border-radius: 50%;
+  background: rgba(6, 22, 50, 0.86);
+  color: #d8f6ff;
+  font-size: 24px;
+  line-height: 30px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.auto-modal-close:hover {
+  border-color: rgba(133, 234, 255, 0.92);
+  color: #ffffff;
+  background: rgba(13, 48, 102, 0.94);
+}
+
+.auto-modal-image {
+  width: 100%;
+  max-height: calc(90vh - 116px);
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(3, 13, 30, 0.72);
+}
+
+.auto-modal-desc {
+  margin: 0;
+  color: rgba(216, 246, 255, 0.94);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .valve-header {
   border: 1px solid rgba(70, 163, 250, 0.34);
   border-radius: 12px;
@@ -379,5 +457,14 @@
 
   .sensor-list {
     grid-template-columns: 1fr;
+  }
+
+  .auto-modal-card {
+    width: min(94vw, 720px);
+    padding: 14px;
+  }
+
+  .auto-modal-desc {
+    font-size: 15px;
   }
 }
