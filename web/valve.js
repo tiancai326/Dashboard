@@ -44,6 +44,7 @@ const valveModalEl = document.getElementById("valveModal");
 const valveModalMessageEl = document.getElementById("valveModalMessage");
 const autoModalEl = document.getElementById("autoModal");
 const appShell = document.getElementById("appShell");
+let autoControlEnabled = false;
 
 function showValveModal(message) {
   if (!valveModalEl || !valveModalMessageEl) return;
@@ -68,6 +69,15 @@ function hideAutoModal() {
   if (!autoModalEl) return;
   autoModalEl.classList.remove("is-visible");
   autoModalEl.setAttribute("aria-hidden", "true");
+}
+
+function isAutoModalVisible() {
+  return Boolean(autoModalEl?.classList.contains("is-visible"));
+}
+
+function enableAutoControl() {
+  autoControlEnabled = true;
+  renderAutoControl();
 }
 
 function zoneText(zoneId) {
@@ -216,16 +226,24 @@ function initValveToggle() {
   });
 
   autoControlBtn?.addEventListener("click", () => {
+    if (autoControlEnabled) {
+      autoControlEnabled = false;
+      renderAutoControl();
+      return;
+    }
     showAutoModal();
   });
 }
 
 function renderAutoControl() {
   if (!autoControlBtn || !autoControlText) return;
-  autoControlBtn.textContent = "开启全自动化管理";
-  autoControlText.textContent = "如您想全自动化管理，请点击该按钮开启";
+  autoControlBtn.textContent = autoControlEnabled ? "全自动化管理已开启" : "开启全自动化管理";
+  autoControlText.textContent = autoControlEnabled
+    ? "全自动化管理已开启，再次点击即可关闭"
+    : "如您想全自动化管理，请点击该按钮开启";
   autoControlBtn.disabled = false;
-  autoControlBtn.classList.remove("is-active", "is-pending");
+  autoControlBtn.classList.toggle("is-active", autoControlEnabled);
+  autoControlBtn.classList.remove("is-pending");
 }
 
 function wait(ms) {
@@ -412,11 +430,13 @@ function initAutoModal() {
     if (!(target instanceof HTMLElement)) return;
     if (target.dataset.autoAction === "close") {
       hideAutoModal();
+      enableAutoControl();
     }
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
+    if (event.key === "Escape" && isAutoModalVisible()) {
       hideAutoModal();
+      enableAutoControl();
     }
   });
 }
