@@ -88,6 +88,10 @@ body {
   text-decoration: none;
 }
 
+.menu .menu-link[href="/admin"] {
+  display: none !important;
+}
+
 .menu-item.is-active {
   color: #092141;
   background: linear-gradient(135deg, #69f6ff, #4ea2ff);
